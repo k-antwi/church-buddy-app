@@ -7,8 +7,12 @@ import '../css/icons.css';
 import '../css/app.scss';
 
 import App from '../components/app.vue';
+import { initAuth } from './auth';
 
 Framework7.use(Framework7Vue);
+
+// Resume token refresh schedule if user is already signed in
+initAuth();
 
 const app = createApp(App);
 registerComponents(app);

@@ -57,7 +57,7 @@
           </div>
 
           <!-- Password -->
-          <div class="cp-field" :class="{ 'cp-field--focused': focused === 'password' }">
+          <div class="cp-field cp-field--has-action" :class="{ 'cp-field--focused': focused === 'password' }">
             <span class="cp-field-icon" aria-hidden="true">
               <i class="f7-icons">lock_fill</i>
             </span>
@@ -85,6 +85,12 @@
 
           <a href="#" class="cp-forgot">Forgot password?</a>
 
+          <!-- Inline error -->
+          <p v-if="error" class="cp-error" role="alert">
+            <i class="f7-icons">exclamationmark_circle_fill</i>
+            {{ error }}
+          </p>
+
           <button
             type="submit"
             class="cp-submit"
@@ -111,6 +117,7 @@
 <script lang="ts">
 import { ref } from 'vue';
 import { f7 } from 'framework7-vue';
+import { login } from '../../ts/auth';
 
 export default {
   name: 'LoginPage',
@@ -121,21 +128,29 @@ export default {
     const showPass = ref(false);
     const loading  = ref(false);
     const focused  = ref('');
+    const error    = ref('');
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
+      error.value = '';
+
       if (!email.value.trim() || !password.value) {
-        f7.dialog.alert('Please enter your email and password.', 'Sign In');
+        error.value = 'Please enter your email and password.';
         return;
       }
+
       loading.value = true;
-      // TODO: replace with Supabase auth call
-      setTimeout(() => {
+
+      try {
+        await login(email.value.trim(), password.value);
+        f7.views.main.router.navigate('/demo/home/');
+      } catch (err) {
+        error.value = err instanceof Error ? err.message : 'An unexpected error occurred.';
+      } finally {
         loading.value = false;
-        // f7.views.main.router.navigate('/dashboard/');
-      }, 1800);
+      }
     };
 
-    return { email, password, showPass, loading, focused, handleLogin };
+    return { email, password, showPass, loading, focused, error, handleLogin };
   },
 };
 </script>
@@ -310,7 +325,10 @@ export default {
     border-radius: 13px;
     padding: 11px 13px;
     margin-bottom: 10px;
+    position: relative;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &--has-action { padding-right: 44px; }
 
     &--focused {
       border-color: var(--cp-purple);
@@ -363,13 +381,16 @@ export default {
   }
 
   .cp-eye-btn {
-    flex-shrink: 0;
+    position: absolute;
+    right: 13px;
+    top: 50%;
+    transform: translateY(-50%);
     background: none;
     border: none;
     outline: none;
     color: var(--cp-muted);
     cursor: pointer;
-    padding: 0 0 0 6px;
+    padding: 0;
     display: flex;
     align-items: center;
     -webkit-tap-highlight-color: transparent;
@@ -379,6 +400,24 @@ export default {
   }
 
   /* ── Forgot ── */
+  /* ── Inline error ── */
+  .cp-error {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(224, 122, 138, 0.1);
+    border: 1px solid rgba(224, 122, 138, 0.25);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #E07A8A;
+    line-height: 1.4;
+
+    i.f7-icons { font-size: 15px; flex-shrink: 0; }
+  }
+
   .cp-forgot {
     align-self: flex-end;
     font-size: 13px;
