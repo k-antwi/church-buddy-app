@@ -30,19 +30,27 @@
     <f7-toolbar tabbar icons bottom>
       <f7-toolbar-pane>
         <f7-link tab-link="#view-home" tab-link-active icon-ios="f7:house_fill" icon-md="material:home" text="Home"></f7-link>
-        <f7-link tab-link="#view-catalog" icon-ios="f7:square_list_fill" icon-md="material:view_list" text="Catalog"></f7-link>
-        <f7-link tab-link="#view-settings" icon-ios="f7:gear" icon-md="material:settings" text="Settings"></f7-link>
+        <f7-link tab-link="#view-people" icon-ios="f7:person_2_fill" icon-md="material:people" text="People"></f7-link>
+        <f7-link tab-link="#view-events" icon-ios="f7:calendar" icon-md="material:calendar_today" text="Events"></f7-link>
+        <f7-link tab-link="#view-groups" icon-ios="f7:person_3_fill" icon-md="material:group" text="Groups"></f7-link>
+        <f7-link tab-link="#view-more" icon-ios="f7:line_horizontal_3" icon-md="material:more_horiz" text="More"></f7-link>
       </f7-toolbar-pane>
     </f7-toolbar>
 
-    <!-- Your main view/tab, should have "view-main" class. It also has "tab-active" class -->
+    <!-- Home View -->
     <f7-view id="view-home" main tab tab-active url="/"></f7-view>
 
-    <!-- Catalog View -->
-    <f7-view id="view-catalog" name="catalog" tab url="/demo/catalog/"></f7-view>
+    <!-- People View -->
+    <f7-view id="view-people" name="people" tab url="/people/"></f7-view>
 
-    <!-- Settings View -->
-    <f7-view id="view-settings" name="settings" tab url="/demo/settings/"></f7-view>
+    <!-- Events View -->
+    <f7-view id="view-events" name="events" tab url="/events/"></f7-view>
+
+    <!-- Groups View -->
+    <f7-view id="view-groups" name="groups" tab url="/groups/"></f7-view>
+
+    <!-- More View -->
+    <f7-view id="view-more" name="more" tab url="/more/"></f7-view>
 
   </f7-views>
 

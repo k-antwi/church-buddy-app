@@ -8,6 +8,10 @@ import SettingsPage from '../pages/demo/settings.vue';
 import DynamicRoutePage from '../pages/demo/dynamic-route.vue';
 import RequestAndLoad from '../pages/demo/request-and-load.vue';
 import NotFoundPage from '../pages/demo/404.vue';
+import PeoplePage from '../pages/people/index.vue';
+import EventsPage from '../pages/events/index.vue';
+import GroupsPage from '../pages/groups/index.vue';
+import MorePage from '../pages/more/index.vue';
 
 interface RouteUser {
   firstName: string;
@@ -50,6 +54,22 @@ const routes = [
   {
     path: '/demo/settings/',
     component: SettingsPage,
+  },
+  {
+    path: '/people/',
+    component: PeoplePage,
+  },
+  {
+    path: '/events/',
+    component: EventsPage,
+  },
+  {
+    path: '/groups/',
+    component: GroupsPage,
+  },
+  {
+    path: '/more/',
+    component: MorePage,
   },
   {
     path: '/demo/dynamic-route/blog/:blogId/post/:postId/',

@@ -1,13 +1,44 @@
-const API_BASE = (import.meta.env.VITE_API_BASE_URL as string).replace(/\/$/, '');
+const DEFAULT_API_BASE = (import.meta.env.VITE_API_BASE_URL as string).replace(/\/$/, '');
 
 const TOKEN_KEY   = 'cp_access_token';
 const EXPIRES_KEY = 'cp_token_expires';
+const TENANT_KEY  = 'cp_tenant_domain';
 
 export interface AuthUser {
   id: number;
   name: string;
   email: string;
   username: string;
+}
+
+// ── Tenant ────────────────────────────────────────────────────────────────────
+
+/**
+ * Normalise user input into a fully-qualified hostname.
+ * "christrends"                 → "christrends.churchpanel.org"
+ * "christrends.churchpanel.org" → "christrends.churchpanel.org"
+ * "https://christrends.org/foo" → "christrends.org"
+ */
+export function resolveDomain(input: string): string {
+  let d = input.trim().toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/\/.*$/, '');
+  if (d && !d.includes('.')) d = `${d}.churchpanel.org`;
+  return d;
+}
+
+export function getTenantDomain(): string | null {
+  return localStorage.getItem(TENANT_KEY);
+}
+
+function setTenantDomain(domain: string | null): void {
+  if (domain) localStorage.setItem(TENANT_KEY, domain);
+  else localStorage.removeItem(TENANT_KEY);
+}
+
+function getApiBase(): string {
+  const tenant = getTenantDomain();
+  return tenant ? `https://${tenant}` : DEFAULT_API_BASE;
 }
 
 // ── Storage ───────────────────────────────────────────────────────────────────
@@ -43,22 +74,35 @@ export function authHeader(): Record<string, string> {
 
 // ── Login ─────────────────────────────────────────────────────────────────────
 
-export async function login(email: string, password: string): Promise<void> {
+export async function login(
+  email: string,
+  password: string,
+  tenantDomain?: string,
+): Promise<void> {
+  const base = tenantDomain ? `https://${tenantDomain}` : DEFAULT_API_BASE;
+
   let res: Response;
   try {
-    res = await fetch(`${API_BASE}/api/login`, {
+    res = await fetch(`${base}/api/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({ email, password }),
     });
   } catch {
-    throw new Error('Unable to connect. Check your internet connection and try again.');
+    throw new Error(
+      tenantDomain
+        ? 'Unable to connect. Verify the workspace domain and your internet connection.'
+        : 'Unable to connect. Check your internet connection and try again.',
+    );
   }
 
   if (res.status === 401) throw new Error('Incorrect email or password.');
   if (!res.ok) throw new Error(`Something went wrong (${res.status}). Please try again.`);
 
   const data = await res.json() as { access_token: string; expires_in: number };
+
+  // Persist tenant BEFORE storing the token so getApiBase() is correct on first use.
+  setTenantDomain(tenantDomain ?? null);
   storeToken(data);
   scheduleRefresh();
 }
@@ -68,6 +112,7 @@ export async function login(email: string, password: string): Promise<void> {
 export function logout(): void {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(EXPIRES_KEY);
+  localStorage.removeItem(TENANT_KEY);
   cancelSchedule();
 }
 
@@ -89,10 +134,7 @@ export async function refresh(): Promise<void> {
   refreshPromise = (async (): Promise<void> => {
     let res: Response;
     try {
-      // Send the current (possibly expired) token — jwt.refresh middleware
-      // validates the signature and issues a new one even if the token has expired,
-      // as long as we're within the refresh_ttl window configured on the backend.
-      res = await fetch(`${API_BASE}/api/refresh`, {
+      res = await fetch(`${getApiBase()}/api/refresh`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
       });
@@ -153,7 +195,7 @@ function scheduleRefresh(): void {
  *   - On refresh failure: calls logout() and throws so the caller can redirect.
  */
 export async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
-  const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
+  const url = path.startsWith('http') ? path : `${getApiBase()}${path}`;
 
   const buildHeaders = (): Record<string, string> => ({
     'Content-Type': 'application/json',
