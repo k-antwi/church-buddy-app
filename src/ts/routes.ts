@@ -1,3 +1,4 @@
+import LoginPage from '../pages/auth/login.vue';
 import HomePage from '../pages/demo/home.vue';
 import AboutPage from '../pages/demo/about.vue';
 import FormPage from '../pages/demo/form.vue';
@@ -24,6 +25,10 @@ interface RouteParams {
 const routes = [
   {
     path: '/',
+    component: LoginPage,
+  },
+  {
+    path: '/demo/home/',
     component: HomePage,
   },
   {
