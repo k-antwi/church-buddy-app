@@ -1,0 +1,47 @@
+/// <reference types="vitest/config" />
+import path from 'path';
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import tailwindcss from '@tailwindcss/vite';
+
+const SRC_DIR = path.resolve(__dirname, './src');
+const PUBLIC_DIR = path.resolve(__dirname, './public');
+const BUILD_DIR = path.resolve(__dirname, './www');
+
+export default defineConfig({
+  plugins: [
+    tailwindcss(),
+    vue({
+      template: {
+        compilerOptions: {
+          isCustomElement: (tag: string) => tag.includes('swiper-'),
+        },
+      },
+    }),
+  ],
+  root: SRC_DIR,
+  base: '',
+  envDir: path.resolve(__dirname),
+  publicDir: PUBLIC_DIR,
+  build: {
+    outDir: BUILD_DIR,
+    assetsInlineLimit: 0,
+    emptyOutDir: true,
+    rollupOptions: {
+      treeshake: false,
+    },
+  },
+  resolve: {
+    alias: {
+      '@': SRC_DIR,
+    },
+  },
+  server: {
+    host: true,
+  },
+  test: {
+    environment: 'jsdom',
+    include: ['**/*.{test,spec}.{ts,tsx}'],
+    root: SRC_DIR,
+  },
+});

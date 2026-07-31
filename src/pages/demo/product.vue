@@ -1,0 +1,34 @@
+<template>
+  <f7-page name="product">
+    <f7-navbar :title="product.title" back-link></f7-navbar>
+    <f7-block-title>About {{ product.title }}</f7-block-title>
+    <f7-block>
+      {{ product.description }}
+    </f7-block>
+  </f7-page>
+</template>
+<script lang="ts">
+import { useStore } from 'framework7-vue';
+import type { Product } from '../../ts/store';
+
+export default {
+  props: {
+    f7route: { type: Object, required: true as const },
+  },
+  setup(props: { f7route: any }) {
+    const products = useStore('products');
+    const productId = props.f7route.params.id;
+    let currentProduct: Product | undefined;
+
+    products.value.forEach((product: Product) => {
+      if (product.id === productId) {
+        currentProduct = product;
+      }
+    });
+
+    return {
+      product: currentProduct!,
+    };
+  },
+};
+</script>
