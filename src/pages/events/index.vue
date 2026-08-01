@@ -62,6 +62,7 @@
         v-for="event in visibleEvents"
         :key="event.id"
         class="cp-event-row"
+        @click="openEvent(event.id)"
       >
         <div class="cp-event-row__accent" :style="{ background: accentColor(event) }"></div>
 
@@ -84,6 +85,7 @@
 
 <script lang="ts">
 import { ref, computed } from 'vue';
+import { f7 } from 'framework7-vue';
 import { fetchEvents, type MobileEvent } from '../../ts/api/events';
 
 const DOW_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -209,6 +211,10 @@ export default {
       return ACCENT_COLORS[dow] ?? '#9184D9';
     };
 
+    const openEvent = (id: number) => {
+      f7.views.get('#view-events')?.router.navigate(`/events/${id}/`);
+    };
+
     return {
       loading,
       error,
@@ -224,6 +230,7 @@ export default {
       formatDate,
       formatTime,
       accentColor,
+      openEvent,
     };
   },
 };

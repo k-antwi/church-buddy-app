@@ -11,6 +11,7 @@ import RequestAndLoad from '../pages/demo/request-and-load.vue';
 import NotFoundPage from '../pages/demo/404.vue';
 import PeoplePage from '../pages/people/index.vue';
 import EventsPage from '../pages/events/index.vue';
+import EventDetailPage from '../pages/events/detail.vue';
 import EvSessionsPage from '../pages/ev-sessions/index.vue';
 import EvSessionDetailPage from '../pages/ev-sessions/session-detail.vue';
 import MorePage from '../pages/more/index.vue';
@@ -68,6 +69,10 @@ const routes = [
   {
     path: '/events/',
     component: EventsPage,
+  },
+  {
+    path: '/events/:id/',
+    component: EventDetailPage,
   },
   {
     path: '/ev-sessions/',
