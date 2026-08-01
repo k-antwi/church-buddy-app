@@ -178,7 +178,7 @@
       <!-- Register -->
       <p class="cp-register">
         New to ChurchBuddy?
-        <a href="#" class="cp-register-link">Create account</a>
+        <a href="#" class="cp-register-link" @click.prevent="goToRegister">Create account</a>
       </p>
 
     </div>
@@ -271,11 +271,15 @@ export default {
       }
     };
 
+    const goToRegister = () => {
+      f7.views.main.router.navigate('/register/');
+    };
+
     return {
       step, domain, tenant, tenantName, resolvedHint,
       email, password, showPass, loading, focused, error,
       domainInput,
-      handleContinue, skipToCredentials, backToDomain, handleLogin,
+      handleContinue, skipToCredentials, backToDomain, handleLogin, goToRegister,
     };
   },
 };

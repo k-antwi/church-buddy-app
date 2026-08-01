@@ -1,4 +1,5 @@
 import LoginPage from '../pages/auth/login.vue';
+import RegisterPage from '../pages/auth/register.vue';
 import HomePage from '../pages/demo/home.vue';
 import AboutPage from '../pages/demo/about.vue';
 import FormPage from '../pages/demo/form.vue';
@@ -31,6 +32,10 @@ const routes = [
   {
     path: '/',
     component: LoginPage,
+  },
+  {
+    path: '/register/',
+    component: RegisterPage,
   },
   {
     path: '/demo/home/',
