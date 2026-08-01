@@ -1,8 +1,8 @@
 {
-  "name": "vue-mobile-starter",
+  "name": "ChurchBuddy",
   "private": true,
   "version": "1.0.0",
-  "description": "Vue Mobile Starter",
+  "description": "ChurchBuddy - The Official ChurchPanel App",
   "repository": "",
   "license": "UNLICENSED",
   "scripts": {

@@ -12,18 +12,9 @@
       <!-- Brand -->
       <div class="cp-brand">
         <div class="cp-brand-icon">
-          <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <rect x="19" y="2" width="14" height="48" rx="5" fill="url(#cpGrad)"/>
-            <rect x="2" y="17" width="48" height="14" rx="5" fill="url(#cpGrad)"/>
-            <defs>
-              <linearGradient id="cpGrad" x1="2" y1="2" x2="50" y2="50" gradientUnits="userSpaceOnUse">
-                <stop stop-color="#CBB8FF"/>
-                <stop offset="1" stop-color="#9184D9"/>
-              </linearGradient>
-            </defs>
-          </svg>
+          <img src="/logo.png" alt="ChurchBuddy" class="cp-brand-logo" />
         </div>
-        <h1 class="cp-brand-name">ChurchPanel</h1>
+        <h1 class="cp-brand-name">ChurchBuddy</h1>
         <p class="cp-brand-tagline">Ministry management, simplified</p>
       </div>
 
@@ -35,7 +26,7 @@
           <div v-if="step === 'domain'" key="domain">
             <header class="cp-card-header">
               <h2 class="cp-card-title">Find your workspace</h2>
-              <p class="cp-card-desc">Enter your organization's ChurchPanel domain</p>
+              <p class="cp-card-desc">Enter your organization's ChurchBuddy domain</p>
             </header>
 
             <form class="cp-form" @submit.prevent="handleContinue" novalidate>
@@ -186,7 +177,7 @@
 
       <!-- Register -->
       <p class="cp-register">
-        New to ChurchPanel?
+        New to ChurchBuddy?
         <a href="#" class="cp-register-link">Create account</a>
       </p>
 
@@ -386,12 +377,18 @@ export default {
   }
 
   .cp-brand-icon {
-    width: 56px;
-    height: 56px;
+    width: 72px;
+    height: 72px;
     margin: 0 auto 16px;
     filter: drop-shadow(0 0 26px rgba(145, 132, 217, 0.55));
+  }
 
-    svg { display: block; width: 100%; height: 100%; }
+  .cp-brand-logo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 16px;
   }
 
   .cp-brand-name {

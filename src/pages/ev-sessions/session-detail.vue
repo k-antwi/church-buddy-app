@@ -94,143 +94,129 @@
     </template>
 
     <!-- FAB -->
-    <f7-fab position="right-bottom" @click="openCaptureSheet" class="cp-fab">
+    <f7-fab position="right-bottom" @click="openCapturePopup" class="cp-fab">
       <f7-icon ios="f7:plus" md="material:add"></f7-icon>
     </f7-fab>
 
-    <!-- ── Capture contact sheet ── -->
-    <f7-sheet
-      class="cp-capture-sheet"
-      :opened="sheetOpen"
-      swipe-to-close
-      backdrop
-      @sheet:closed="sheetOpen = false"
+    <!-- ── Capture contact popup ── -->
+    <f7-popup
+      class="cp-capture-popup"
+      :opened="popupOpen"
+      @popup:closed="popupOpen = false"
     >
-      <div class="cp-sheet-inner">
-        <div class="cp-sheet-handle"></div>
+      <f7-page>
+        <f7-navbar title="Capture Contact">
+          <f7-nav-right>
+            <f7-link popup-close>Cancel</f7-link>
+          </f7-nav-right>
+        </f7-navbar>
 
-        <h2 class="cp-sheet-title">Capture Contact</h2>
+        <f7-page-content>
+          <f7-list strong inset>
+            <f7-list-input
+              label="First Name"
+              type="text"
+              placeholder="John"
+              autocomplete="given-name"
+              required
+              :error-message="validationErrors.first_name"
+              :error-message-force="fieldError('first_name')"
+              :value="form.first_name"
+              @input="form.first_name = ($event.target as HTMLInputElement).value"
+            >
+              <template #media>
+                <i class="f7-icons" style="font-size:18px">person_fill</i>
+              </template>
+            </f7-list-input>
 
-        <form class="cp-capture-form" @submit.prevent="submitCapture" novalidate>
+            <f7-list-input
+              label="Last Name"
+              type="text"
+              placeholder="Doe"
+              autocomplete="family-name"
+              :value="form.last_name"
+              @input="form.last_name = ($event.target as HTMLInputElement).value"
+            />
 
-          <!-- Name row -->
-          <div class="cp-field-row">
-            <div class="cp-field" :class="{ 'cp-field--focused': focused === 'first_name', 'cp-field--error': fieldError('first_name') }">
-              <div class="cp-field-body">
-                <label class="cp-field-label" for="cp-first-name">First Name *</label>
-                <input
-                  id="cp-first-name"
-                  v-model="form.first_name"
-                  type="text"
-                  autocomplete="given-name"
-                  placeholder="John"
-                  @focus="focused = 'first_name'"
-                  @blur="focused = ''"
-                />
-              </div>
-            </div>
-            <div class="cp-field" :class="{ 'cp-field--focused': focused === 'last_name' }">
-              <div class="cp-field-body">
-                <label class="cp-field-label" for="cp-last-name">Last Name</label>
-                <input
-                  id="cp-last-name"
-                  v-model="form.last_name"
-                  type="text"
-                  autocomplete="family-name"
-                  placeholder="Doe"
-                  @focus="focused = 'last_name'"
-                  @blur="focused = ''"
-                />
-              </div>
-            </div>
-          </div>
+            <f7-list-input
+              label="Phone"
+              type="tel"
+              inputmode="tel"
+              placeholder="+1 555 000 0000"
+              autocomplete="tel"
+              :value="form.phone"
+              @input="form.phone = ($event.target as HTMLInputElement).value"
+            >
+              <template #media>
+                <i class="f7-icons" style="font-size:18px">phone_fill</i>
+              </template>
+            </f7-list-input>
 
-          <!-- Phone -->
-          <div class="cp-field" :class="{ 'cp-field--focused': focused === 'phone' }">
-            <span class="cp-field-icon"><i class="f7-icons">phone_fill</i></span>
-            <div class="cp-field-body">
-              <label class="cp-field-label" for="cp-phone">Phone</label>
-              <input
-                id="cp-phone"
-                v-model="form.phone"
-                type="tel"
-                inputmode="tel"
-                autocomplete="tel"
-                placeholder="+1 555 000 0000"
-                @focus="focused = 'phone'"
-                @blur="focused = ''"
-              />
-            </div>
-          </div>
+            <f7-list-input
+              label="Email"
+              type="email"
+              inputmode="email"
+              placeholder="john@example.com"
+              autocomplete="email"
+              :value="form.email"
+              @input="form.email = ($event.target as HTMLInputElement).value"
+            >
+              <template #media>
+                <i class="f7-icons" style="font-size:18px">envelope_fill</i>
+              </template>
+            </f7-list-input>
 
-          <!-- Email -->
-          <div class="cp-field" :class="{ 'cp-field--focused': focused === 'email' }">
-            <span class="cp-field-icon"><i class="f7-icons">envelope_fill</i></span>
-            <div class="cp-field-body">
-              <label class="cp-field-label" for="cp-email">Email</label>
-              <input
-                id="cp-email"
-                v-model="form.email"
-                type="email"
-                inputmode="email"
-                autocomplete="email"
-                placeholder="john@example.com"
-                @focus="focused = 'email'"
-                @blur="focused = ''"
-              />
-            </div>
-          </div>
+            <f7-list-input
+              label="Notes"
+              type="textarea"
+              placeholder="Any additional notes…"
+              resizable
+              :value="form.notes"
+              @input="form.notes = ($event.target as HTMLTextAreaElement).value"
+            />
+          </f7-list>
 
-          <!-- Outcome -->
-          <div class="cp-field-label-standalone">Outcome *</div>
-          <div class="cp-outcome-grid" :class="{ 'cp-field--error': fieldError('outcome') }">
-            <button
+          <f7-block-title>
+            Outcome
+            <span class="cp-required-hint">required</span>
+          </f7-block-title>
+          <div class="cp-outcome-grid" :class="{ 'cp-outcome-grid--error': fieldError('outcome') }">
+            <f7-button
               v-for="opt in OUTCOME_OPTIONS"
               :key="opt.value"
-              type="button"
-              class="cp-outcome-option"
+              small
+              outline
               :class="{ 'cp-outcome-option--selected': form.outcome === opt.value }"
               :style="form.outcome === opt.value ? `--oo-color: ${opt.color}` : ''"
               @click="form.outcome = opt.value"
             >
               {{ opt.label }}
-            </button>
+            </f7-button>
           </div>
 
-          <!-- Notes -->
-          <div class="cp-field" :class="{ 'cp-field--focused': focused === 'notes' }">
-            <div class="cp-field-body">
-              <label class="cp-field-label" for="cp-notes">Notes</label>
-              <textarea
-                id="cp-notes"
-                v-model="form.notes"
-                rows="2"
-                placeholder="Any additional notes…"
-                @focus="focused = 'notes'"
-                @blur="focused = ''"
-              ></textarea>
+          <f7-block v-if="submitError">
+            <div class="cp-error" role="alert">
+              <i class="f7-icons">exclamationmark_circle_fill</i>
+              {{ submitError }}
             </div>
-          </div>
+          </f7-block>
 
-          <!-- Submit error -->
-          <p v-if="submitError" class="cp-error" role="alert">
-            <i class="f7-icons">exclamationmark_circle_fill</i>
-            {{ submitError }}
-          </p>
-
-          <button
-            type="submit"
-            class="cp-submit"
-            :class="{ 'cp-submit--loading': submitting }"
-            :disabled="submitting"
-          >
-            <span v-if="!submitting">Save Contact</span>
-            <i v-else class="f7-icons cp-submit-spinner">arrow_2_circlepath</i>
-          </button>
-
-        </form>
-      </div>
-    </f7-sheet>
+          <f7-block>
+            <f7-button
+              large
+              fill
+              round
+              :disabled="submitting"
+              class="cp-submit-btn"
+              @click="submitCapture"
+            >
+              <span v-if="!submitting">Save Contact</span>
+              <i v-else class="f7-icons cp-submit-spinner">arrow_2_circlepath</i>
+            </f7-button>
+          </f7-block>
+        </f7-page-content>
+      </f7-page>
+    </f7-popup>
 
   </f7-page>
 </template>
@@ -257,8 +243,7 @@ export default {
     const session = ref<EvSessionDetail | null>(null);
     const loading = ref(false);
     const error = ref('');
-    const sheetOpen = ref(false);
-    const focused = ref('');
+    const popupOpen = ref(false);
     const submitting = ref(false);
     const submitError = ref('');
     const validationErrors = ref<Record<string, string>>({});
@@ -295,9 +280,9 @@ export default {
       }
     };
 
-    const openCaptureSheet = () => {
+    const openCapturePopup = () => {
       resetForm();
-      sheetOpen.value = true;
+      popupOpen.value = true;
     };
 
     const fieldError = (field: string): boolean => field in validationErrors.value;
@@ -321,7 +306,7 @@ export default {
       try {
         const contact: EvContact = await captureContact(sessionId, {
           first_name: form.first_name.trim(),
-          last_name: form.last_name.trim() || undefined,
+          last_name: form.last_name.trim(),
           phone: form.phone.trim() || undefined,
           email: form.email.trim() || undefined,
           outcome: form.outcome,
@@ -329,7 +314,7 @@ export default {
         });
 
         session.value?.contacts.unshift(contact);
-        sheetOpen.value = false;
+        popupOpen.value = false;
         resetForm();
       } catch (err) {
         submitError.value = err instanceof Error ? err.message : 'Failed to save contact.';
@@ -354,14 +339,14 @@ export default {
       session,
       loading,
       error,
-      sheetOpen,
-      focused,
+      popupOpen,
       submitting,
       submitError,
+      validationErrors,
       form,
       OUTCOME_OPTIONS,
       loadDetail,
-      openCaptureSheet,
+      openCapturePopup,
       submitCapture,
       fieldError,
       initials,
@@ -373,7 +358,9 @@ export default {
 </script>
 
 <style lang="scss">
-.cp-session-detail-page {
+// CP tokens available to both the page tree and the portal-rendered sheet
+.cp-session-detail-page,
+.cp-capture-sheet {
   --cp-bg: #0A0816;
   --cp-surface: #130F24;
   --cp-field: #1A1535;
@@ -384,7 +371,9 @@ export default {
   --cp-text: #EAE5FC;
   --cp-muted: #6A6090;
   --cp-green: #10B981;
+}
 
+.cp-session-detail-page {
   font-family: 'Outfit', -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 
@@ -618,185 +607,71 @@ export default {
     --f7-fab-bg-color: var(--cp-purple);
     --f7-fab-box-shadow: 0 6px 22px rgba(145, 132, 217, 0.5);
   }
+}
 
-  /* ── Capture sheet ── */
-  .cp-capture-sheet {
-    --f7-sheet-bg-color: var(--cp-surface);
-    border-radius: 22px 22px 0 0;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
+/* ── Capture sheet ── */
+.cp-capture-sheet {
+  --f7-sheet-bg-color: var(--cp-surface);
+  --f7-theme-color: var(--cp-purple);
+  border-radius: 22px 22px 0 0;
+  max-height: 90vh;
+}
 
-  .cp-sheet-inner {
-    padding: 0 20px max(env(safe-area-inset-bottom, 0px), 20px);
-  }
+.cp-sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: rgba(145, 132, 217, 0.3);
+  border-radius: 2px;
+  margin: 10px auto 0;
+}
 
-  .cp-sheet-handle {
-    width: 36px;
-    height: 4px;
-    background: rgba(145, 132, 217, 0.3);
-    border-radius: 2px;
-    margin: 10px auto 20px;
-  }
+/* ── Outcome selector ── */
+.cp-outcome-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 0 16px 8px;
 
-  .cp-sheet-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--cp-text);
-    margin: 0 0 20px;
-  }
+  &--error .button { border-color: rgba(224, 122, 138, 0.4); }
 
-  /* ── Capture form ── */
-  .cp-capture-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .cp-field-row {
-    display: flex;
-    gap: 10px;
-
-    .cp-field { flex: 1; }
-  }
-
-  .cp-field {
-    background: var(--cp-field);
-    border: 1.5px solid transparent;
-    border-radius: 13px;
-    padding: 10px 13px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-
-    &--focused {
-      border-color: var(--cp-purple);
-      box-shadow: 0 0 0 3px rgba(145, 132, 217, 0.13);
-      .cp-field-icon { color: var(--cp-purple-l); }
-    }
-
-    &--error { border-color: rgba(224, 122, 138, 0.6); }
-  }
-
-  .cp-field-icon {
-    flex-shrink: 0;
-    color: var(--cp-muted);
-    i.f7-icons { font-size: 16px; line-height: 1; }
-  }
-
-  .cp-field-body { flex: 1; min-width: 0; }
-
-  .cp-field-label {
-    display: block;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--cp-muted);
-    margin-bottom: 2px;
-  }
-
-  .cp-field-label-standalone {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--cp-muted);
-    padding-left: 2px;
-  }
-
-  .cp-field-body input,
-  .cp-field-body textarea {
-    display: block;
-    width: 100%;
-    background: none;
-    border: none;
-    outline: none;
-    font-family: 'Outfit', -apple-system, sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--cp-text);
-    padding: 0;
-    resize: none;
-    -webkit-appearance: none;
-
-    &::placeholder { color: rgba(106, 96, 144, 0.55); }
-  }
-
-  /* ── Outcome grid ── */
-  .cp-outcome-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-
-    &.cp-field--error .cp-outcome-option { border-color: rgba(224, 122, 138, 0.3); }
-  }
-
-  .cp-outcome-option {
-    background: var(--cp-field);
-    border: 1.5px solid transparent;
-    border-radius: 10px;
-    padding: 9px 6px;
-    font-family: 'Outfit', -apple-system, sans-serif;
+  .button {
     font-size: 12px;
     font-weight: 600;
-    color: var(--cp-muted);
-    text-align: center;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: all 0.15s ease;
+    height: 36px;
 
-    &--selected {
-      background: rgba(var(--oo-color, 145, 132, 217), 0.12);
+    &.cp-outcome-option--selected {
+      background: color-mix(in srgb, var(--oo-color, var(--cp-purple)) 15%, transparent);
       border-color: var(--oo-color, var(--cp-purple));
       color: var(--oo-color, var(--cp-purple-l));
     }
   }
-
-  /* ── Error / submit ── */
-  .cp-error {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    background: rgba(224, 122, 138, 0.1);
-    border: 1px solid rgba(224, 122, 138, 0.25);
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #E07A8A;
-    margin: 0;
-
-    i.f7-icons { font-size: 15px; flex-shrink: 0; }
-  }
-
-  .cp-submit {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 50px;
-    border: none;
-    border-radius: 13px;
-    background: linear-gradient(130deg, #A999EE 0%, #9184D9 55%, #7D6FC6 100%);
-    box-shadow: 0 5px 26px rgba(145, 132, 217, 0.38);
-    color: #fff;
-    font-family: 'Outfit', -apple-system, sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: transform 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease;
-    margin-top: 4px;
-
-    &:active { transform: scale(0.975); box-shadow: 0 2px 12px rgba(145, 132, 217, 0.25); }
-    &:disabled { opacity: 0.45; cursor: not-allowed; }
-  }
-
-  .cp-submit-spinner {
-    font-size: 22px !important;
-    animation: cpSpin 0.72s linear infinite;
-  }
 }
+
+/* ── Error callout ── */
+.cp-error {
+  display: flex !important;
+  align-items: center;
+  gap: 7px;
+  background: rgba(224, 122, 138, 0.1);
+  border: 1px solid rgba(224, 122, 138, 0.25);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #E07A8A;
+
+  i.f7-icons { font-size: 15px; flex-shrink: 0; }
+}
+
+/* ── Submit button ── */
+.cp-submit-btn.button {
+  background: linear-gradient(130deg, #A999EE 0%, #9184D9 55%, #7D6FC6 100%);
+  box-shadow: 0 5px 26px rgba(145, 132, 217, 0.38);
+}
+
+.cp-submit-spinner {
+  font-size: 22px !important;
+  animation: cpSpin 0.72s linear infinite;
+}
+
+@keyframes cpSpin { to { transform: rotate(360deg); } }
 </style>
