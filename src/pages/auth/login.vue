@@ -195,9 +195,9 @@
 </template>
 
 <script lang="ts">
-import { ref, computed, nextTick } from 'vue';
+import { ref, computed, nextTick, onMounted } from 'vue';
 import { f7 } from 'framework7-vue';
-import { login, resolveDomain } from '../../ts/auth';
+import { login, resolveDomain, isAuthenticated } from '../../ts/auth';
 
 export default {
   name: 'LoginPage',
@@ -214,6 +214,12 @@ export default {
     const error    = ref('');
 
     const domainInput = ref<HTMLInputElement | null>(null);
+
+    onMounted(() => {
+      if (isAuthenticated()) {
+        f7.tab.show('#view-ev-sessions');
+      }
+    });
 
     // Friendly display name derived from the first label in the domain.
     const tenantName = computed(() => {
@@ -266,7 +272,7 @@ export default {
 
       try {
         await login(email.value.trim(), password.value, tenant.value || undefined);
-        f7.views.main.router.navigate('/demo/home/');
+        f7.tab.show('#view-ev-sessions');
       } catch (err) {
         error.value = err instanceof Error ? err.message : 'An unexpected error occurred.';
       } finally {

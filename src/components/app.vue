@@ -108,6 +108,7 @@
 
   import routes from '../ts/routes';
   import store from '../ts/store';
+  import { isAuthenticated } from '../ts/auth';
 
   export default {
     components: { kProvider },
@@ -133,7 +134,9 @@
 
       onMounted(() => {
         f7ready(() => {
-          // Call F7 APIs here
+          if (isAuthenticated()) {
+            f7.tab.show('#view-ev-sessions');
+          }
         });
       });
 

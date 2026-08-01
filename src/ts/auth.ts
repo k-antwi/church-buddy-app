@@ -1,4 +1,5 @@
 const DEFAULT_API_BASE = (import.meta.env.VITE_API_BASE_URL as string).replace(/\/$/, '');
+const TENANT_BASE_DOMAIN = ((import.meta.env.VITE_TENANT_BASE_DOMAIN as string | undefined) ?? 'churchpanel.org').replace(/^\./, '');
 
 const TOKEN_KEY   = 'cp_access_token';
 const EXPIRES_KEY = 'cp_token_expires';
@@ -15,15 +16,15 @@ export interface AuthUser {
 
 /**
  * Normalise user input into a fully-qualified hostname.
- * "christrends"                 → "christrends.churchpanel.org"
- * "christrends.churchpanel.org" → "christrends.churchpanel.org"
- * "https://christrends.org/foo" → "christrends.org"
+ * "christrends"                      → "christrends.<TENANT_BASE_DOMAIN>"
+ * "christrends.churchpanel.ddev.site" → "christrends.churchpanel.ddev.site"
+ * "https://christrends.org/foo"      → "christrends.org"
  */
 export function resolveDomain(input: string): string {
   let d = input.trim().toLowerCase()
     .replace(/^https?:\/\//, '')
     .replace(/\/.*$/, '');
-  if (d && !d.includes('.')) d = `${d}.churchpanel.org`;
+  if (d && !d.includes('.')) d = `${d}.${TENANT_BASE_DOMAIN}`;
   return d;
 }
 
