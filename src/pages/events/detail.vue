@@ -217,9 +217,19 @@
             </div>
             <div class="cp-checkin-card__action">
               <button
+                class="cp-child-btn"
+                :class="{ 'cp-child-btn--active': attendance.is_child }"
+                :disabled="togglingChildId === attendance.id || togglingId === attendance.id"
+                :title="attendance.is_child ? 'Mark as adult' : 'Mark as child'"
+                @click="toggleIsChild(attendance)"
+              >
+                <span v-if="togglingChildId === attendance.id" class="cp-toggle-btn__spinner"></span>
+                <i v-else class="f7-icons">person_crop_circle_fill</i>
+              </button>
+              <button
                 class="cp-toggle-btn"
                 :class="attendance.attendance_status === 'present' ? 'cp-toggle-btn--present' : 'cp-toggle-btn--absent'"
-                :disabled="togglingId === attendance.id"
+                :disabled="togglingId === attendance.id || togglingChildId === attendance.id"
                 @click="toggleAttendance(attendance)"
               >
                 <span v-if="togglingId === attendance.id" class="cp-toggle-btn__spinner"></span>
@@ -243,6 +253,7 @@ import {
   fetchEventDetail,
   generateCheckinList,
   updateAttendanceStatus,
+  updateAttendanceIsChild,
   type MobileEventDetail,
   type MobileAttendance,
 } from '../../ts/api/events';
@@ -272,6 +283,7 @@ export default {
     const activeTab = ref('details');
     const generating = ref(false);
     const togglingId = ref<number | null>(null);
+    const togglingChildId = ref<number | null>(null);
 
     const tabs = [
       { id: 'details', label: 'Details' },
@@ -305,8 +317,25 @@ export default {
       }
     };
 
+    const toggleIsChild = async (attendance: MobileAttendance) => {
+      if (togglingId.value !== null || togglingChildId.value !== null || !event.value) return;
+      togglingChildId.value = attendance.id;
+      const newValue = !attendance.is_child;
+      attendance.is_child = newValue;
+      try {
+        const updated = await updateAttendanceIsChild(eventId, attendance.id, newValue);
+        const idx = event.value.attendances.findIndex(a => a.id === attendance.id);
+        if (idx !== -1) event.value.attendances[idx] = updated;
+      } catch (err) {
+        attendance.is_child = !newValue;
+        console.error(err);
+      } finally {
+        togglingChildId.value = null;
+      }
+    };
+
     const toggleAttendance = async (attendance: MobileAttendance) => {
-      if (togglingId.value !== null || !event.value) return;
+      if (togglingId.value !== null || togglingChildId.value !== null || !event.value) return;
       togglingId.value = attendance.id;
       const nextStatus = attendance.attendance_status === 'present' ? 'absent' : 'present';
       const prevStatus = attendance.attendance_status;
@@ -402,9 +431,11 @@ export default {
       childrenCount,
       generating,
       togglingId,
+      togglingChildId,
       isCheckinWindowOpen,
       presentAttendances,
       loadDetail,
+      toggleIsChild,
       handleGenerateCheckinList,
       toggleAttendance,
       formatDay,
@@ -867,9 +898,37 @@ export default {
     }
   }
 
+  /* ── Child toggle ── */
+  .cp-child-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s;
+    background: rgba(107, 114, 128, 0.08);
+    flex-shrink: 0;
+
+    i.f7-icons { font-size: 16px; color: #9CA3AF; transition: color 0.15s; }
+
+    &--active {
+      background: rgba(245, 158, 11, 0.14);
+      i.f7-icons { color: #B45309; }
+    }
+
+    &:disabled { opacity: 0.45; cursor: default; }
+  }
+
   /* ── Toggle button ── */
   .cp-checkin-card__action {
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
 
   .cp-toggle-btn {
