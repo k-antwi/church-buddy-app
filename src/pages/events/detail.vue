@@ -54,7 +54,10 @@
           @click="activeTab = tab.id"
         >
           {{ tab.label }}
-          <span v-if="tab.id === 'checkin'" class="cp-tab-count">
+          <span v-if="tab.id === 'checkin' && totalCheckedIn > 0" class="cp-tab-count">
+            {{ totalCheckedIn }}
+          </span>
+          <span v-if="tab.id === 'expecting' && event.attendances.length > 0" class="cp-tab-count">
             {{ event.attendances.length }}
           </span>
         </button>
@@ -115,20 +118,6 @@
 
       <!-- Tab: Check-In -->
       <div v-show="activeTab === 'checkin'" class="cp-tab-content">
-        <!-- Generate button -->
-        <div class="cp-generate-bar">
-          <button class="cp-generate-btn" :disabled="generating" @click="handleGenerateCheckinList">
-            <template v-if="generating">
-              <span class="cp-generate-btn__spinner"></span>
-              Generating…
-            </template>
-            <template v-else>
-              <i class="f7-icons">person_2_fill</i>
-              Generate Check-In List
-            </template>
-          </button>
-        </div>
-
         <!-- Stats strip -->
         <div class="cp-checkin-stats">
           <div class="cp-checkin-stat">
@@ -146,15 +135,15 @@
         </div>
 
         <!-- Empty -->
-        <div v-if="event.attendances.length === 0" class="cp-state cp-state--empty">
+        <div v-if="presentAttendances.length === 0" class="cp-state cp-state--empty">
           <i class="f7-icons">person_badge_plus</i>
-          <p>Tap "Generate Check-In List" to load all expected attendees.</p>
+          <p>No one has checked in yet.</p>
         </div>
 
-        <!-- Attendance list -->
+        <!-- Checked-in list -->
         <div v-else class="cp-checkin-list">
           <div
-            v-for="attendance in event.attendances"
+            v-for="attendance in presentAttendances"
             :key="attendance.id"
             class="cp-checkin-card"
           >
@@ -172,6 +161,57 @@
                 </template>
                 <template v-if="attendance.check_in_method">
                   · {{ methodLabel(attendance.check_in_method) }}
+                </template>
+              </div>
+            </div>
+            <div class="cp-checkin-card__status">
+              <span class="cp-attendance-badge cp-attendance--present">Present</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Roll Call -->
+      <div v-show="activeTab === 'expecting'" class="cp-tab-content">
+        <!-- Generate button — visible from the day before the event until end of event day -->
+        <div v-if="isCheckinWindowOpen" class="cp-generate-bar">
+          <button class="cp-generate-btn" :disabled="generating" @click="handleGenerateCheckinList">
+            <template v-if="generating">
+              <span class="cp-generate-btn__spinner"></span>
+              Generating…
+            </template>
+            <template v-else>
+              <i class="f7-icons">person_2_fill</i>
+              Generate Check-In List
+            </template>
+          </button>
+        </div>
+
+        <!-- Empty -->
+        <div v-if="event.attendances.length === 0" class="cp-state cp-state--empty">
+          <i class="f7-icons">list_bullet_clipboard</i>
+          <p v-if="isCheckinWindowOpen">Tap "Generate Check-In List" to load all expected attendees.</p>
+          <p v-else>The check-in list will be available from the day before the event.</p>
+        </div>
+
+        <!-- Roll call list -->
+        <div v-else class="cp-checkin-list">
+          <div
+            v-for="attendance in event.attendances"
+            :key="attendance.id"
+            class="cp-checkin-card"
+          >
+            <div class="cp-checkin-card__avatar" :class="{ 'cp-checkin-card__avatar--child': attendance.is_child }">
+              {{ initials(attendance.attendee_name) }}
+            </div>
+            <div class="cp-checkin-card__body">
+              <div class="cp-checkin-card__name">
+                {{ attendance.attendee_name ?? 'Unknown' }}
+                <span v-if="attendance.first_time_visitor" class="cp-first-time-dot" title="First-time visitor"></span>
+              </div>
+              <div class="cp-checkin-card__meta">
+                <template v-if="attendance.check_in_time">
+                  {{ formatTime(attendance.check_in_time) }}
                 </template>
               </div>
             </div>
@@ -236,6 +276,7 @@ export default {
     const tabs = [
       { id: 'details', label: 'Details' },
       { id: 'checkin', label: 'Check-In' },
+      { id: 'expecting', label: 'Expecting' },
     ];
 
     const loadDetail = async () => {
@@ -300,16 +341,18 @@ export default {
       return ACCENT_COLORS[dow] ?? '#9184D9';
     });
 
-    const totalCheckedIn = computed(() =>
-      event.value?.attendances.filter(a => a.attendance_status === 'present').length ?? 0,
+    const presentAttendances = computed(() =>
+      event.value?.attendances.filter(a => a.attendance_status === 'present') ?? [],
     );
 
+    const totalCheckedIn = computed(() => presentAttendances.value.length);
+
     const firstTimeCount = computed(() =>
-      event.value?.attendances.filter(a => a.first_time_visitor).length ?? 0,
+      presentAttendances.value.filter(a => a.first_time_visitor).length,
     );
 
     const childrenCount = computed(() =>
-      event.value?.attendances.filter(a => a.is_child).length ?? 0,
+      presentAttendances.value.filter(a => a.is_child).length,
     );
 
     const formatDay = (iso: string) =>
@@ -359,6 +402,8 @@ export default {
       childrenCount,
       generating,
       togglingId,
+      isCheckinWindowOpen,
+      presentAttendances,
       loadDetail,
       handleGenerateCheckinList,
       toggleAttendance,
