@@ -1,4 +1,38 @@
-@import 'tailwindcss' layer(theme, utilities);
+@import 'tailwindcss/theme' layer(theme);
+@import 'tailwindcss/utilities' layer(utilities);
 @import 'konsta/vue/theme.css';
+@import 'tokens';
 
-/* Your app custom styles here */
+/* ─── Framework7 light theme — wire brand tokens into F7 CSS vars ─── */
+:root,
+.ios,
+.md {
+  --f7-theme-color:                    var(--m-accent);
+  --f7-page-bg-color:                  var(--m-bg);
+  --f7-bars-bg-color:                  var(--m-surface);
+  --f7-bars-text-color:                var(--m-text);
+  --f7-bars-link-color:                var(--m-accent);
+  --f7-bars-border-color:              transparent;
+  --f7-navbar-large-title-text-color:  var(--m-text);
+  --f7-tabbar-bg-color:                var(--m-surface);
+  --f7-tabbar-icon-active-color:       var(--m-accent);
+  --f7-tabbar-label-active-color:      var(--m-accent);
+  --f7-tabbar-icon-inactive-color:     var(--m-text-3);
+  --f7-tabbar-label-inactive-color:    var(--m-text-3);
+  --f7-tabbar-height:                  60px;
+  --f7-list-bg-color:                  var(--m-surface);
+  --f7-list-item-border-color:         var(--m-border);
+  --f7-block-bg-color:                 var(--m-surface);
+  --f7-input-bg-color:                 var(--m-surface-2);
+  --f7-searchbar-bg-color:             var(--m-surface-2);
+  --f7-searchbar-placeholder-color:    var(--m-text-3);
+}
+
+/* ── Floating pill tab bar ── */
+.toolbar-bottom.tabbar {
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -4px 24px rgba(26, 23, 48, 0.08);
+  overflow: hidden;
+
+  &::before { display: none !important; }
+}

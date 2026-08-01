@@ -1,3 +1,5 @@
+import LoginPage from '../pages/auth/login.vue';
+import RegisterPage from '../pages/auth/register.vue';
 import HomePage from '../pages/demo/home.vue';
 import AboutPage from '../pages/demo/about.vue';
 import FormPage from '../pages/demo/form.vue';
@@ -7,6 +9,11 @@ import SettingsPage from '../pages/demo/settings.vue';
 import DynamicRoutePage from '../pages/demo/dynamic-route.vue';
 import RequestAndLoad from '../pages/demo/request-and-load.vue';
 import NotFoundPage from '../pages/demo/404.vue';
+import PeoplePage from '../pages/people/index.vue';
+import EventsPage from '../pages/events/index.vue';
+import EvSessionsPage from '../pages/ev-sessions/index.vue';
+import EvSessionDetailPage from '../pages/ev-sessions/session-detail.vue';
+import MorePage from '../pages/more/index.vue';
 
 interface RouteUser {
   firstName: string;
@@ -24,6 +31,14 @@ interface RouteParams {
 const routes = [
   {
     path: '/',
+    component: LoginPage,
+  },
+  {
+    path: '/register/',
+    component: RegisterPage,
+  },
+  {
+    path: '/demo/home/',
     component: HomePage,
   },
   {
@@ -45,6 +60,26 @@ const routes = [
   {
     path: '/demo/settings/',
     component: SettingsPage,
+  },
+  {
+    path: '/people/',
+    component: PeoplePage,
+  },
+  {
+    path: '/events/',
+    component: EventsPage,
+  },
+  {
+    path: '/ev-sessions/',
+    component: EvSessionsPage,
+  },
+  {
+    path: '/ev-sessions/:id/',
+    component: EvSessionDetailPage,
+  },
+  {
+    path: '/more/',
+    component: MorePage,
   },
   {
     path: '/demo/dynamic-route/blog/:blogId/post/:postId/',

@@ -5,11 +5,17 @@
       <f7-nav-left>
         <f7-link icon-ios="f7:menu" icon-md="material:menu" panel-open="left"></f7-link>
       </f7-nav-left>
-      <f7-nav-title sliding>Vue Mobile Starter</f7-nav-title>
+      <f7-nav-title sliding>
+        <img src="/logo.png" alt="ChurchBuddy" style="height:28px;width:28px;object-fit:contain;border-radius:6px;vertical-align:middle;margin-right:6px;" />
+        ChurchBuddy
+      </f7-nav-title>
       <f7-nav-right>
         <f7-link icon-ios="f7:menu" icon-md="material:menu" panel-open="right"></f7-link>
       </f7-nav-right>
-      <f7-nav-title-large>Vue Mobile Starter</f7-nav-title-large>
+      <f7-nav-title-large>
+        <img src="/logo.png" alt="" style="height:36px;width:36px;object-fit:contain;border-radius:8px;vertical-align:middle;margin-right:10px;" />
+        ChurchBuddy
+      </f7-nav-title-large>
     </f7-navbar>
 
     <!-- Page content-->

@@ -1,0 +1,101 @@
+/* ─── ChurchBuddy Design Tokens ─── */
+
+/* ─── 1. Static palette + scale → Tailwind utility classes ─── */
+@theme {
+  /* Brand palette */
+  --color-brand-purple:    #9184D9;
+  --color-brand-purple-lt: #C0B0F5;
+  --color-brand-amber:     #E8A548;
+  --color-brand-green:     #52A875;
+  --color-brand-teal:      #4AADA8;
+  --color-brand-mauve:     #B07FCC;
+  --color-brand-rose:      #E07A8A;
+  --color-brand-blue:      #5B9BD5;
+
+  /* Dark base shades */
+  --color-ink-900: #0A0816;
+  --color-ink-800: #0F0B1E;
+  --color-ink-700: #130F24;
+  --color-ink-600: #1A1535;
+
+  /* Typography scale — size + paired line-height */
+  --text-display:                  30px;
+  --text-display--line-height:     1.20;
+  --text-h1:                       24px;
+  --text-h1--line-height:          1.28;
+  --text-h2:                       20px;
+  --text-h2--line-height:          1.32;
+  --text-h3:                       17px;
+  --text-h3--line-height:          1.40;
+  --text-body-lg:                  17px;
+  --text-body-lg--line-height:     1.52;
+  --text-body:                     15px;
+  --text-body--line-height:        1.52;
+  --text-body-sm:                  13px;
+  --text-body-sm--line-height:     1.50;
+  --text-caption:                  12px;
+  --text-caption--line-height:     1.30;
+  --text-label:                    11px;
+  --text-label--line-height:       1.20;
+
+  /* Font weights (matches design weights: 400 / 500 / 600 / 700) */
+  --font-weight-regular:    400;
+  --font-weight-medium:     500;
+  --font-weight-semibold:   600;
+  --font-weight-bold:       700;
+  --font-weight-extrabold:  800;
+
+  /* Border radius */
+  --radius-xs:   6px;
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   22px;
+  --radius-full: 9999px;
+}
+
+/* ─── 2. Semantic tokens — light theme ─── */
+:root {
+  /* Backgrounds */
+  --m-bg:       #F5F3FA;
+  --m-bg-2:     #EDE9F9;
+
+  /* Surfaces */
+  --m-surface:  #FFFFFF;
+  --m-surface-2:#EDE9F9;
+
+  /* Text */
+  --m-text:     #1A1730;
+  --m-text-2:   #5E5A7E;
+  --m-text-3:   #9B97BE;
+
+  /* Accent & border */
+  --m-accent:   #9184D9;
+  --m-border:   rgba(145, 132, 217, 0.12);
+
+  /* Spacing — 4 px base grid */
+  --m-sp-1:   4px;
+  --m-sp-2:   8px;
+  --m-sp-3:   12px;
+  --m-sp-4:   16px;
+  --m-sp-5:   20px;
+  --m-sp-6:   24px;
+  --m-sp-8:   32px;
+  --m-sp-10:  40px;
+  --m-sp-12:  48px;
+  --m-sp-16:  64px;
+}
+
+/* ─── 3. Wire semantic tokens into Tailwind utilities ─── */
+/* bg-bg, text-content, border-border, etc. respond to --m-* changes */
+@theme inline {
+  --color-bg:        var(--m-bg);
+  --color-bg-2:      var(--m-bg-2);
+  --color-surface:   var(--m-surface);
+  --color-surface-2: var(--m-surface-2);
+  --color-content:   var(--m-text);
+  --color-content-2: var(--m-text-2);
+  --color-content-3: var(--m-text-3);
+  --color-accent:    var(--m-accent);
+  --color-border:    var(--m-border);
+}
