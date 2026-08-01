@@ -114,10 +114,10 @@
     components: { kProvider },
     setup() {
       const f7params = {
-        name: 'Vue Mobile Starter',
-        theme: 'auto',
+        name: 'ChurchBuddy',
+        theme: 'ios',
         colors: {
-          primary: '#772F1A',
+          primary: '#9184D9',
         },
         store,
         routes,

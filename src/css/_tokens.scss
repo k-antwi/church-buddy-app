@@ -54,24 +54,24 @@
   --radius-full: 9999px;
 }
 
-/* ─── 2. Semantic tokens — dark-mode defaults (design is dark-first) ─── */
+/* ─── 2. Semantic tokens — light theme ─── */
 :root {
   /* Backgrounds */
-  --m-bg:       #0A0816;
-  --m-bg-2:     #0F0B1E;
+  --m-bg:       #F5F3FA;
+  --m-bg-2:     #EDE9F9;
 
   /* Surfaces */
-  --m-surface:  #130F24;
-  --m-surface-2:#1A1535;
+  --m-surface:  #FFFFFF;
+  --m-surface-2:#EDE9F9;
 
   /* Text */
-  --m-text:     #EAE5FC;
-  --m-text-2:   #9B97BE;
-  --m-text-3:   #6A6090;
+  --m-text:     #1A1730;
+  --m-text-2:   #5E5A7E;
+  --m-text-3:   #9B97BE;
 
   /* Accent & border */
   --m-accent:   #9184D9;
-  --m-border:   rgba(145, 132, 217, 0.15);
+  --m-border:   rgba(145, 132, 217, 0.12);
 
   /* Spacing — 4 px base grid */
   --m-sp-1:   4px;
