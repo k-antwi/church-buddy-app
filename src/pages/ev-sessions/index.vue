@@ -110,15 +110,15 @@ export default {
 
 <style lang="scss">
 .cp-ev-sessions-page {
-  --cp-bg: #0A0816;
-  --cp-surface: #130F24;
-  --cp-border: rgba(145, 132, 217, 0.15);
+  --cp-bg: #F5F3FA;
+  --cp-surface: #FFFFFF;
+  --cp-border: rgba(145, 132, 217, 0.12);
   --cp-purple: #9184D9;
-  --cp-purple-l: #C0B0F5;
-  --cp-text: #EAE5FC;
-  --cp-muted: #6A6090;
-  --cp-green: #10B981;
-  --cp-amber: #F59E0B;
+  --cp-purple-l: #6B5ABE;
+  --cp-text: #1A1730;
+  --cp-muted: #5E5A7E;
+  --cp-green: #047857;
+  --cp-amber: #B45309;
 
   font-family: 'Outfit', -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -148,7 +148,7 @@ export default {
   .cp-spinner {
     width: 32px;
     height: 32px;
-    border: 3px solid rgba(145, 132, 217, 0.2);
+    border: 3px solid rgba(145, 132, 217, 0.15);
     border-top-color: var(--cp-purple);
     border-radius: 50%;
     animation: cpSpin 0.72s linear infinite;
@@ -157,10 +157,10 @@ export default {
   @keyframes cpSpin { to { transform: rotate(360deg); } }
 
   .cp-retry-btn {
-    background: rgba(145, 132, 217, 0.15);
-    border: 1px solid rgba(145, 132, 217, 0.3);
+    background: rgba(145, 132, 217, 0.08);
+    border: 1px solid rgba(145, 132, 217, 0.22);
     border-radius: 10px;
-    color: var(--cp-purple-l);
+    color: var(--cp-purple);
     font-family: 'Outfit', -apple-system, sans-serif;
     font-size: 14px;
     font-weight: 600;
@@ -264,10 +264,10 @@ export default {
       padding: 2px 8px;
       border-radius: 999px;
 
-      &.cp-tag--active { background: rgba(16, 185, 129, 0.15); color: var(--cp-green); }
-      &.cp-tag--planning { background: rgba(145, 132, 217, 0.15); color: var(--cp-purple-l); }
-      &.cp-tag--completed { background: rgba(106, 96, 144, 0.15); color: var(--cp-muted); }
-      &.cp-tag--cancelled { background: rgba(224, 122, 138, 0.1); color: #E07A8A; }
+      &.cp-tag--active { background: rgba(4, 120, 87, 0.08); color: var(--cp-green); }
+      &.cp-tag--planning { background: rgba(145, 132, 217, 0.10); color: var(--cp-purple); }
+      &.cp-tag--completed { background: rgba(94, 90, 126, 0.10); color: var(--cp-muted); }
+      &.cp-tag--cancelled { background: rgba(224, 122, 138, 0.10); color: #BE3F55; }
     }
 
     &__contacts {

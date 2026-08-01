@@ -361,16 +361,16 @@ export default {
 // CP tokens available to both the page tree and the portal-rendered sheet
 .cp-session-detail-page,
 .cp-capture-sheet {
-  --cp-bg: #0A0816;
-  --cp-surface: #130F24;
-  --cp-field: #1A1535;
-  --cp-border: rgba(145, 132, 217, 0.15);
+  --cp-bg: #F5F3FA;
+  --cp-surface: #FFFFFF;
+  --cp-field: #EDE9F9;
+  --cp-border: rgba(145, 132, 217, 0.12);
   --cp-purple: #9184D9;
-  --cp-purple-l: #C0B0F5;
-  --cp-amber: #E8A548;
-  --cp-text: #EAE5FC;
-  --cp-muted: #6A6090;
-  --cp-green: #10B981;
+  --cp-purple-l: #6B5ABE;
+  --cp-amber: #B45309;
+  --cp-text: #1A1730;
+  --cp-muted: #5E5A7E;
+  --cp-green: #047857;
 }
 
 .cp-session-detail-page {
@@ -401,7 +401,7 @@ export default {
   .cp-spinner {
     width: 30px;
     height: 30px;
-    border: 3px solid rgba(145, 132, 217, 0.2);
+    border: 3px solid rgba(145, 132, 217, 0.15);
     border-top-color: var(--cp-purple);
     border-radius: 50%;
     animation: cpSpin 0.72s linear infinite;
@@ -410,10 +410,10 @@ export default {
   @keyframes cpSpin { to { transform: rotate(360deg); } }
 
   .cp-retry-btn {
-    background: rgba(145, 132, 217, 0.15);
-    border: 1px solid rgba(145, 132, 217, 0.3);
+    background: rgba(145, 132, 217, 0.08);
+    border: 1px solid rgba(145, 132, 217, 0.22);
     border-radius: 10px;
-    color: var(--cp-purple-l);
+    color: var(--cp-purple);
     font-family: 'Outfit', -apple-system, sans-serif;
     font-size: 14px;
     font-weight: 600;
@@ -591,11 +591,11 @@ export default {
     border-radius: 999px;
     white-space: nowrap;
 
-    &.cp-outcome--interested { background: rgba(59, 130, 246, 0.15); color: #60A5FA; }
-    &.cp-outcome--prayed { background: rgba(139, 92, 246, 0.15); color: #A78BFA; }
-    &.cp-outcome--declined { background: rgba(107, 114, 128, 0.15); color: #9CA3AF; }
-    &.cp-outcome--follow_up_requested { background: rgba(245, 158, 11, 0.15); color: #FCD34D; }
-    &.cp-outcome--saved { background: rgba(16, 185, 129, 0.15); color: #34D399; }
+    &.cp-outcome--interested { background: rgba(59, 130, 246, 0.08); color: #2563EB; }
+    &.cp-outcome--prayed { background: rgba(139, 92, 246, 0.08); color: #7C3AED; }
+    &.cp-outcome--declined { background: rgba(107, 114, 128, 0.08); color: #4B5563; }
+    &.cp-outcome--follow_up_requested { background: rgba(245, 158, 11, 0.08); color: #B45309; }
+    &.cp-outcome--saved { background: rgba(4, 120, 87, 0.08); color: #047857; }
   }
 
   .cp-promoted-badge {
