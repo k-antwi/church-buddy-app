@@ -32,7 +32,7 @@
         <f7-link tab-link="#view-home" tab-link-active icon-ios="f7:house_fill" icon-md="material:home" text="Home"></f7-link>
         <f7-link tab-link="#view-people" icon-ios="f7:person_2_fill" icon-md="material:people" text="People"></f7-link>
         <f7-link tab-link="#view-events" icon-ios="f7:calendar" icon-md="material:calendar_today" text="Events"></f7-link>
-        <f7-link tab-link="#view-groups" icon-ios="f7:person_3_fill" icon-md="material:group" text="Groups"></f7-link>
+        <f7-link tab-link="#view-ev-sessions" icon-ios="f7:megaphone_fill" icon-md="material:campaign" text="EvSessions"></f7-link>
         <f7-link tab-link="#view-more" icon-ios="f7:line_horizontal_3" icon-md="material:more_horiz" text="More"></f7-link>
       </f7-toolbar-pane>
     </f7-toolbar>
@@ -46,8 +46,8 @@
     <!-- Events View -->
     <f7-view id="view-events" name="events" tab url="/events/"></f7-view>
 
-    <!-- Groups View -->
-    <f7-view id="view-groups" name="groups" tab url="/groups/"></f7-view>
+    <!-- Evangelism Sessions View -->
+    <f7-view id="view-ev-sessions" name="ev-sessions" tab url="/ev-sessions/"></f7-view>
 
     <!-- More View -->
     <f7-view id="view-more" name="more" tab url="/more/"></f7-view>

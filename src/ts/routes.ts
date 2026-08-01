@@ -10,7 +10,8 @@ import RequestAndLoad from '../pages/demo/request-and-load.vue';
 import NotFoundPage from '../pages/demo/404.vue';
 import PeoplePage from '../pages/people/index.vue';
 import EventsPage from '../pages/events/index.vue';
-import GroupsPage from '../pages/groups/index.vue';
+import EvSessionsPage from '../pages/ev-sessions/index.vue';
+import EvSessionDetailPage from '../pages/ev-sessions/session-detail.vue';
 import MorePage from '../pages/more/index.vue';
 
 interface RouteUser {
@@ -64,8 +65,12 @@ const routes = [
     component: EventsPage,
   },
   {
-    path: '/groups/',
-    component: GroupsPage,
+    path: '/ev-sessions/',
+    component: EvSessionsPage,
+  },
+  {
+    path: '/ev-sessions/:id/',
+    component: EvSessionDetailPage,
   },
   {
     path: '/more/',
