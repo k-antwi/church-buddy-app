@@ -19,11 +19,9 @@
 
 ---
 
-## Project Structure
+## Component Building
 
-```
-
-```
+- all components must be implemented using Container/Presentation pattern - to ensure that all component logic are housed in composables by default
 
 ---
 
