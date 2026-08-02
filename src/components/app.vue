@@ -27,7 +27,7 @@
   <!-- Views/Tabs container -->
   <f7-views tabs class="safe-areas">
     <!-- Tabbar for switching views-tabs -->
-    <f7-toolbar tabbar icons bottom>
+    <f7-toolbar v-show="authState.loggedIn" tabbar icons bottom>
       <f7-toolbar-pane>
         <f7-link tab-link="#view-home" tab-link-active icon-ios="f7:house_fill" icon-md="material:home" text="Home"></f7-link>
         <f7-link tab-link="#view-people" icon-ios="f7:person_2_fill" icon-md="material:people" text="People"></f7-link>
@@ -109,6 +109,7 @@
   import routes from '../ts/routes';
   import store from '../ts/store';
   import { isAuthenticated } from '../ts/auth';
+  import { authState } from '../ts/auth-state';
 
   export default {
     components: { kProvider },
@@ -145,6 +146,7 @@
         username,
         password,
         alertLoginData,
+        authState,
       };
     },
   };
