@@ -453,7 +453,7 @@ export default {
 
   /* ── Tenant pill ── */
   .cp-tenant-pill {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 6px;
     background: rgba(145, 132, 217, 0.12);
@@ -489,7 +489,7 @@ export default {
     display: flex;
     align-items: center;
     color: var(--cp-muted);
-    margin-left: 2px;
+    margin-left: auto;
     -webkit-tap-highlight-color: transparent;
     transition: color 0.15s ease;
 
@@ -518,7 +518,8 @@ export default {
     position: relative;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
-    &--has-action { padding-right: 44px; }
+
+    &--has-action .cp-field-body input { padding-right: 32px; }
 
     &--focused {
       border-color: var(--cp-purple);
@@ -584,6 +585,7 @@ export default {
     display: flex;
     align-items: center;
     -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s ease;
 
     i.f7-icons { font-size: 17px; }
     &:active { color: var(--cp-purple-l); }
