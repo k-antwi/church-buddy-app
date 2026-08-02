@@ -130,6 +130,27 @@ export function logout(): void {
   cancelSchedule();
 }
 
+/**
+ * Invalidates the token on the server, then clears local session state.
+ * Uses the raw stored token directly (bypasses expiry check and auto-refresh)
+ * so the server call succeeds even if our local clock considers it expired.
+ * Always cleans up locally regardless of the server response.
+ */
+export async function apiLogout(): Promise<void> {
+  const token = rawToken();
+  if (token) {
+    try {
+      await fetch(`${getApiBase()}/api/logout`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+      });
+    } catch {
+      // Network error — still clear local session
+    }
+  }
+  logout();
+}
+
 // ── Refresh ───────────────────────────────────────────────────────────────────
 
 /**
