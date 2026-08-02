@@ -135,7 +135,7 @@
       onMounted(() => {
         f7ready(() => {
           if (isAuthenticated()) {
-            f7.tab.show('#view-ev-sessions');
+            f7.views.main.router.navigate('/home/', { clearPreviousHistory: true });
           }
         });
       });

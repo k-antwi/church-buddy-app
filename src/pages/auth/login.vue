@@ -208,7 +208,7 @@ export default {
 
     onMounted(() => {
       if (isAuthenticated()) {
-        f7.tab.show('#view-ev-sessions');
+        f7.views.main.router.navigate('/home/', { clearPreviousHistory: true });
       }
     });
 
@@ -263,7 +263,7 @@ export default {
 
       try {
         await login(email.value.trim(), password.value, tenant.value || undefined);
-        f7.tab.show('#view-ev-sessions');
+        f7.views.main.router.navigate('/home/', { clearPreviousHistory: true });
       } catch (err) {
         error.value = err instanceof Error ? err.message : 'An unexpected error occurred.';
       } finally {

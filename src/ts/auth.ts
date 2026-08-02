@@ -4,6 +4,7 @@ const TENANT_BASE_DOMAIN = ((import.meta.env.VITE_TENANT_BASE_DOMAIN as string |
 const TOKEN_KEY   = 'cp_access_token';
 const EXPIRES_KEY = 'cp_token_expires';
 const TENANT_KEY  = 'cp_tenant_domain';
+const USER_KEY    = 'cp_user';
 
 export interface AuthUser {
   id: number;
@@ -68,6 +69,16 @@ export function isAuthenticated(): boolean {
   return getToken() !== null;
 }
 
+export function getStoredUser(): AuthUser | null {
+  const raw = localStorage.getItem(USER_KEY);
+  if (!raw) return null;
+  try { return JSON.parse(raw) as AuthUser; } catch { return null; }
+}
+
+function storeUser(user: AuthUser): void {
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
 export function authHeader(): Record<string, string> {
   const token = getToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -100,11 +111,12 @@ export async function login(
   if (res.status === 401) throw new Error('Incorrect email or password.');
   if (!res.ok) throw new Error(`Something went wrong (${res.status}). Please try again.`);
 
-  const data = await res.json() as { access_token: string; expires_in: number };
+  const data = await res.json() as { access_token: string; expires_in: number; user?: AuthUser };
 
   // Persist tenant BEFORE storing the token so getApiBase() is correct on first use.
   setTenantDomain(tenantDomain ?? null);
   storeToken(data);
+  if (data.user) storeUser(data.user);
   scheduleRefresh();
 }
 
@@ -114,6 +126,7 @@ export function logout(): void {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(EXPIRES_KEY);
   localStorage.removeItem(TENANT_KEY);
+  localStorage.removeItem(USER_KEY);
   cancelSchedule();
 }
 
