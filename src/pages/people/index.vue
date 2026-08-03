@@ -1,5 +1,5 @@
 <template>
-  <f7-page name="people" class="cp-people-page">
+  <f7-page name="people" class="cp-people-page" @page:beforein="loadPeople">
     <ComingSoonOverlay />
 
     <f7-navbar large :sliding="false">
@@ -38,33 +38,45 @@
       >{{ f.label }}</button>
     </div>
 
+    <!-- Loading -->
+    <div v-if="loading" class="cp-loading-state">
+      <div class="cp-spinner"></div>
+    </div>
+
+    <!-- Error -->
+    <div v-else-if="error" class="cp-error-state">
+      <i class="f7-icons">exclamationmark_triangle_fill</i>
+      <p>{{ error }}</p>
+      <button class="cp-retry-btn" @click="loadPeople">Try again</button>
+    </div>
+
     <!-- People list -->
-    <div class="cp-list">
+    <div v-else class="cp-list">
       <div
         v-for="(person, idx) in filteredPeople"
         :key="person.id"
         class="cp-person"
         :class="{ 'cp-person--last': idx === filteredPeople.length - 1 }"
       >
-        <div class="cp-avatar" :style="{ background: person.color }">
-          {{ person.initials }}
+        <div class="cp-avatar" :style="{ background: avatarColor(person) }">
+          {{ initials(person) }}
         </div>
 
         <div class="cp-person-info">
-          <span class="cp-person-name">{{ person.name }}</span>
-          <span class="cp-person-sub">{{ person.sub }}</span>
+          <span class="cp-person-name">{{ person.first_name }} {{ person.last_name }}</span>
+          <span class="cp-person-sub">{{ person.branch?.name ?? person.type ?? 'Member' }}</span>
         </div>
 
         <div class="cp-person-end">
           <span
-            v-if="person.badge"
-            :class="['cp-badge', `cp-badge--${person.badge.type}`]"
-          >{{ person.badge.label }}</span>
+            v-if="person.type"
+            :class="['cp-badge', `cp-badge--${person.type}`]"
+          >{{ typeLabel(person.type) }}</span>
           <i v-else class="f7-icons cp-chevron">chevron_right</i>
         </div>
       </div>
 
-      <div v-if="filteredPeople.length === 0" class="cp-empty">
+      <div v-if="filteredPeople.length === 0 && !loading" class="cp-empty">
         No people found.
       </div>
     </div>
@@ -75,46 +87,62 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import ComingSoonOverlay from '../../components/ComingSoonOverlay.vue';
+import { fetchPeople, type MobilePerson } from '../../ts/api/people';
 
-const query       = ref('');
+const query        = ref('');
 const activeFilter = ref('all');
+const people       = ref<MobilePerson[]>([]);
+const loading      = ref(false);
+const error        = ref('');
 
 const filters = [
   { id: 'all',     label: 'All'     },
-  { id: 'members', label: 'Members' },
-  { id: 'staff',   label: 'Staff'   },
+  { id: 'member',  label: 'Members' },
+  { id: 'leader',  label: 'Leaders' },
+  { id: 'visitor', label: 'Visitors' },
 ];
 
-const people = [
-  {
-    id: 1, initials: 'SC', name: 'Sarah Chen',   sub: 'Group Leader',  color: '#9184D9',
-    badge: { label: 'Member', type: 'member' }, filter: 'members',
-  },
-  {
-    id: 2, initials: 'JW', name: 'James Wilson', sub: 'Worship Team',  color: '#E8A548',
-    badge: { label: 'Staff',  type: 'staff'  }, filter: 'staff',
-  },
-  {
-    id: 3, initials: 'MP', name: 'Michael Park', sub: 'Alpha Group',   color: '#52A875',
-    badge: null, filter: 'members',
-  },
-  {
-    id: 4, initials: 'AK', name: 'Anna Kim',     sub: 'New visitor',   color: '#B07FCC',
-    badge: { label: 'Guest',  type: 'guest'  }, filter: 'members',
-  },
-];
+const AVATAR_COLORS = ['#9184D9', '#6366F1', '#10B981', '#F59E0B', '#14B8A6', '#F97168', '#E8A548'];
+
+function initials(person: MobilePerson): string {
+  return `${person.first_name[0] ?? ''}${person.last_name[0] ?? ''}`.toUpperCase();
+}
+
+function avatarColor(person: MobilePerson): string {
+  const code = (person.first_name.charCodeAt(0) + person.last_name.charCodeAt(0)) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[code];
+}
+
+function typeLabel(type: string): string {
+  const map: Record<string, string> = { member: 'Member', leader: 'Leader', visitor: 'Visitor' };
+  return map[type] ?? type;
+}
 
 const filteredPeople = computed(() => {
-  let list = people;
+  let list = people.value;
   if (activeFilter.value !== 'all') {
-    list = list.filter(p => p.filter === activeFilter.value);
+    list = list.filter(p => p.type === activeFilter.value);
   }
   if (query.value.trim()) {
     const q = query.value.toLowerCase();
-    list = list.filter(p => p.name.toLowerCase().includes(q) || p.sub.toLowerCase().includes(q));
+    list = list.filter(p =>
+      `${p.first_name} ${p.last_name}`.toLowerCase().includes(q),
+    );
   }
   return list;
 });
+
+async function loadPeople(): Promise<void> {
+  loading.value = true;
+  error.value = '';
+  try {
+    people.value = await fetchPeople();
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Failed to load people.';
+  } finally {
+    loading.value = false;
+  }
+}
 </script>
 
 <style lang="scss">
@@ -157,6 +185,9 @@ const filteredPeople = computed(() => {
     display: flex;
     gap: var(--m-sp-2);
     padding: 0 var(--m-sp-4) var(--m-sp-3);
+    overflow-x: auto;
+
+    &::-webkit-scrollbar { display: none; }
   }
 
   .cp-chip {
@@ -168,6 +199,7 @@ const filteredPeople = computed(() => {
     background: transparent;
     color: var(--m-text-2);
     cursor: pointer;
+    white-space: nowrap;
     transition: background 0.15s, color 0.15s, border-color 0.15s;
 
     &--active {
@@ -179,6 +211,46 @@ const filteredPeople = computed(() => {
       border-color: var(--m-border);
       background: var(--m-surface);
     }
+  }
+
+  /* ── Loading / error states ── */
+  .cp-loading-state,
+  .cp-error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    min-height: 260px;
+    color: var(--m-text-3);
+    font-size: 14px;
+    text-align: center;
+    padding: 24px;
+
+    i.f7-icons { font-size: 40px; opacity: 0.4; }
+  }
+
+  .cp-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid rgba(145, 132, 217, 0.15);
+    border-top-color: var(--m-accent, #9184D9);
+    border-radius: 50%;
+    animation: cpPeopleSpin 0.72s linear infinite;
+  }
+
+  @keyframes cpPeopleSpin { to { transform: rotate(360deg); } }
+
+  .cp-retry-btn {
+    background: rgba(145, 132, 217, 0.08);
+    border: 1px solid rgba(145, 132, 217, 0.22);
+    border-radius: 10px;
+    color: var(--m-accent, #9184D9);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 22px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* ── Person list ── */
@@ -233,6 +305,7 @@ const filteredPeople = computed(() => {
   .cp-person-sub {
     font-size: 13px;
     color: var(--m-text-2);
+    text-transform: capitalize;
   }
 
   .cp-person-end {
@@ -258,12 +331,12 @@ const filteredPeople = computed(() => {
       color: #27A155;
     }
 
-    &--staff {
+    &--leader {
       background: #EDE9F9;
-      color: var(--m-accent);
+      color: #9184D9;
     }
 
-    &--guest {
+    &--visitor {
       background: #FEF3E2;
       color: #D4880A;
     }
