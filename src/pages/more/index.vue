@@ -19,91 +19,6 @@
         </div>
       </div>
 
-      <!-- ── Edit form ── -->
-      <Transition name="cp-slide">
-        <div v-if="editing" class="cp-edit-card">
-          <div class="cp-edit-header">
-            <span class="cp-edit-title">Edit Profile</span>
-            <button class="cp-edit-close" type="button" @click="cancelEdit">
-              <i class="f7-icons">xmark_circle_fill</i>
-            </button>
-          </div>
-
-          <form class="cp-edit-form" @submit.prevent="saveProfile">
-
-            <div class="cp-field" :class="{ 'cp-field--focused': focused === 'name', 'cp-field--error': !!fieldError('name') }">
-              <span class="cp-field-icon"><i class="f7-icons">person_fill</i></span>
-              <div class="cp-field-body">
-                <label class="cp-field-label" for="ep-name">Full name</label>
-                <input id="ep-name" v-model="form.name" type="text" autocomplete="name"
-                  @focus="focused = 'name'" @blur="focused = ''" />
-              </div>
-            </div>
-            <p v-if="fieldError('name')" class="cp-field-msg">{{ fieldError('name') }}</p>
-
-            <div class="cp-field" :class="{ 'cp-field--focused': focused === 'email', 'cp-field--error': !!fieldError('email') }">
-              <span class="cp-field-icon"><i class="f7-icons">envelope_fill</i></span>
-              <div class="cp-field-body">
-                <label class="cp-field-label" for="ep-email">Email</label>
-                <input id="ep-email" v-model="form.email" type="email" autocomplete="email"
-                  inputmode="email" @focus="focused = 'email'" @blur="focused = ''" />
-              </div>
-            </div>
-            <p v-if="fieldError('email')" class="cp-field-msg">{{ fieldError('email') }}</p>
-
-            <!-- Password change toggle -->
-            <button type="button" class="cp-pw-toggle" @click="changingPassword = !changingPassword">
-              <i class="f7-icons">{{ changingPassword ? 'chevron_up' : 'lock_fill' }}</i>
-              {{ changingPassword ? 'Cancel password change' : 'Change password' }}
-            </button>
-
-            <Transition name="cp-slide">
-              <div v-if="changingPassword" class="cp-pw-fields">
-                <div class="cp-field" :class="{ 'cp-field--focused': focused === 'current_pw', 'cp-field--error': !!fieldError('current_password') }">
-                  <span class="cp-field-icon"><i class="f7-icons">lock_fill</i></span>
-                  <div class="cp-field-body">
-                    <label class="cp-field-label" for="ep-current-pw">Current password</label>
-                    <input id="ep-current-pw" v-model="form.current_password" type="password"
-                      autocomplete="current-password" @focus="focused = 'current_pw'" @blur="focused = ''" />
-                  </div>
-                </div>
-                <p v-if="fieldError('current_password')" class="cp-field-msg">{{ fieldError('current_password') }}</p>
-
-                <div class="cp-field" :class="{ 'cp-field--focused': focused === 'new_pw', 'cp-field--error': !!fieldError('password') }">
-                  <span class="cp-field-icon"><i class="f7-icons">lock_shield_fill</i></span>
-                  <div class="cp-field-body">
-                    <label class="cp-field-label" for="ep-new-pw">New password</label>
-                    <input id="ep-new-pw" v-model="form.password" type="password"
-                      autocomplete="new-password" @focus="focused = 'new_pw'" @blur="focused = ''" />
-                  </div>
-                </div>
-                <p v-if="fieldError('password')" class="cp-field-msg">{{ fieldError('password') }}</p>
-
-                <div class="cp-field" :class="{ 'cp-field--focused': focused === 'confirm_pw' }">
-                  <span class="cp-field-icon"><i class="f7-icons">lock_shield_fill</i></span>
-                  <div class="cp-field-body">
-                    <label class="cp-field-label" for="ep-confirm-pw">Confirm password</label>
-                    <input id="ep-confirm-pw" v-model="form.password_confirmation" type="password"
-                      autocomplete="new-password" @focus="focused = 'confirm_pw'" @blur="focused = ''" />
-                  </div>
-                </div>
-              </div>
-            </Transition>
-
-            <p v-if="saveError" class="cp-save-error" role="alert">
-              <i class="f7-icons">exclamationmark_circle_fill</i>
-              {{ saveError }}
-            </p>
-
-            <button class="cp-save-btn" type="submit" :disabled="saving">
-              <span v-if="saving" class="cp-btn-spinner"></span>
-              {{ saving ? 'Saving…' : 'Save changes' }}
-            </button>
-
-          </form>
-        </div>
-      </Transition>
-
       <!-- ── Account section ── -->
       <div class="cp-more-section">
         <span class="cp-section-label">ACCOUNT</span>
@@ -157,6 +72,93 @@
 
     </div>
   </f7-page>
+
+  <!-- ── Edit Profile Popup ── -->
+  <f7-popup class="cp-edit-popup" :opened="editing" @popup:closed="cancelEdit" swipe-to-close>
+    <f7-page no-navbar>
+      <div class="cp-edit-popup-inner">
+
+        <div class="cp-edit-header">
+          <span class="cp-edit-title">Edit<br>Profile</span>
+          <button class="cp-edit-close" type="button" @click="cancelEdit">
+            <i class="f7-icons">xmark_circle_fill</i>
+          </button>
+        </div>
+
+        <form class="cp-edit-form" @submit.prevent="saveProfile">
+
+          <div class="cp-field" :class="{ 'cp-field--focused': focused === 'name', 'cp-field--error': !!fieldError('name') }">
+            <span class="cp-field-icon"><i class="f7-icons">person_fill</i></span>
+            <div class="cp-field-body">
+              <label class="cp-field-label" for="ep-name">Full name</label>
+              <input id="ep-name" v-model="form.name" type="text" autocomplete="name"
+                @focus="focused = 'name'" @blur="focused = ''" />
+            </div>
+          </div>
+          <p v-if="fieldError('name')" class="cp-field-msg">{{ fieldError('name') }}</p>
+
+          <div class="cp-field" :class="{ 'cp-field--focused': focused === 'email', 'cp-field--error': !!fieldError('email') }">
+            <span class="cp-field-icon"><i class="f7-icons">envelope_fill</i></span>
+            <div class="cp-field-body">
+              <label class="cp-field-label" for="ep-email">Email</label>
+              <input id="ep-email" v-model="form.email" type="email" autocomplete="email"
+                inputmode="email" @focus="focused = 'email'" @blur="focused = ''" />
+            </div>
+          </div>
+          <p v-if="fieldError('email')" class="cp-field-msg">{{ fieldError('email') }}</p>
+
+          <button type="button" class="cp-pw-toggle" @click="changingPassword = !changingPassword">
+            <i class="f7-icons">{{ changingPassword ? 'chevron_up' : 'lock_fill' }}</i>
+            {{ changingPassword ? 'Cancel password change' : 'Change password' }}
+          </button>
+
+          <Transition name="cp-slide">
+            <div v-if="changingPassword" class="cp-pw-fields">
+              <div class="cp-field" :class="{ 'cp-field--focused': focused === 'current_pw', 'cp-field--error': !!fieldError('current_password') }">
+                <span class="cp-field-icon"><i class="f7-icons">lock_fill</i></span>
+                <div class="cp-field-body">
+                  <label class="cp-field-label" for="ep-current-pw">Current password</label>
+                  <input id="ep-current-pw" v-model="form.current_password" type="password"
+                    autocomplete="current-password" @focus="focused = 'current_pw'" @blur="focused = ''" />
+                </div>
+              </div>
+              <p v-if="fieldError('current_password')" class="cp-field-msg">{{ fieldError('current_password') }}</p>
+
+              <div class="cp-field" :class="{ 'cp-field--focused': focused === 'new_pw', 'cp-field--error': !!fieldError('password') }">
+                <span class="cp-field-icon"><i class="f7-icons">lock_shield_fill</i></span>
+                <div class="cp-field-body">
+                  <label class="cp-field-label" for="ep-new-pw">New password</label>
+                  <input id="ep-new-pw" v-model="form.password" type="password"
+                    autocomplete="new-password" @focus="focused = 'new_pw'" @blur="focused = ''" />
+                </div>
+              </div>
+              <p v-if="fieldError('password')" class="cp-field-msg">{{ fieldError('password') }}</p>
+
+              <div class="cp-field" :class="{ 'cp-field--focused': focused === 'confirm_pw' }">
+                <span class="cp-field-icon"><i class="f7-icons">lock_shield_fill</i></span>
+                <div class="cp-field-body">
+                  <label class="cp-field-label" for="ep-confirm-pw">Confirm password</label>
+                  <input id="ep-confirm-pw" v-model="form.password_confirmation" type="password"
+                    autocomplete="new-password" @focus="focused = 'confirm_pw'" @blur="focused = ''" />
+                </div>
+              </div>
+            </div>
+          </Transition>
+
+          <p v-if="saveError" class="cp-save-error" role="alert">
+            <i class="f7-icons">exclamationmark_circle_fill</i>
+            {{ saveError }}
+          </p>
+
+          <button class="cp-save-btn" type="submit" :disabled="saving">
+            <span v-if="saving" class="cp-btn-spinner"></span>
+            {{ saving ? 'Saving…' : 'Save changes' }}
+          </button>
+
+        </form>
+      </div>
+    </f7-page>
+  </f7-popup>
 </template>
 
 <script lang="ts">
@@ -395,15 +397,6 @@ export default {
   }
 
   /* ── Edit card ── */
-  .cp-edit-card {
-    background: var(--cp-surface);
-    border: 1px solid var(--cp-border);
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-    overflow: hidden;
-  }
-
   .cp-edit-header {
     display: flex;
     align-items: center;
@@ -686,6 +679,209 @@ export default {
   }
 
   /* ── Slide transition ── */
+  .cp-slide-enter-active,
+  .cp-slide-leave-active {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .cp-slide-enter-from,
+  .cp-slide-leave-to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* ── Edit Profile Popup (rendered outside .cp-more-page by F7) ── */
+.cp-edit-popup {
+  --cp-bg:     #F5F3FA;
+  --cp-surface:#FFFFFF;
+  --cp-border: rgba(145, 132, 217, 0.12);
+  --cp-purple: #9184D9;
+  --cp-text:   #1A1730;
+  --cp-muted:  #5E5A7E;
+  --cp-red:    #EF4444;
+
+  font-family: 'Outfit', -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+
+  &.popup { border-radius: 24px 24px 0 0 !important; }
+
+  .page { --f7-page-bg-color: var(--cp-bg); }
+
+  .cp-edit-popup-inner {
+    padding: 28px 20px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .cp-edit-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .cp-edit-title {
+    flex: 1;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--cp-text);
+    line-height: 1.2;
+    letter-spacing: -0.3px;
+  }
+
+  .cp-edit-close {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--cp-muted);
+    display: flex;
+    -webkit-tap-highlight-color: transparent;
+
+    i.f7-icons { font-size: 26px; }
+    &:active { opacity: 0.6; }
+  }
+
+  .cp-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cp-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--cp-bg);
+    border: 1.5px solid rgba(145, 132, 217, 0.18);
+    border-radius: 14px;
+    padding: 0 14px 0 12px;
+    transition: border-color 0.15s ease;
+
+    &--focused { border-color: var(--cp-purple); }
+    &--error   { border-color: var(--cp-red);    }
+  }
+
+  .cp-field-icon {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    color: var(--cp-muted);
+    i.f7-icons { font-size: 16px; }
+  }
+
+  .cp-field-body {
+    flex: 1;
+    padding: 10px 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .cp-field-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--cp-muted);
+  }
+
+  .cp-field input {
+    width: 100%;
+    background: none;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cp-text);
+    padding: 0;
+    -webkit-appearance: none;
+
+    &::placeholder { color: rgba(94, 90, 126, 0.45); }
+  }
+
+  .cp-field-msg {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--cp-red);
+    margin: -4px 0 0 4px;
+  }
+
+  .cp-pw-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cp-purple);
+    cursor: pointer;
+    padding: 4px 0;
+    -webkit-tap-highlight-color: transparent;
+
+    i.f7-icons { font-size: 14px; }
+  }
+
+  .cp-pw-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cp-save-error {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--cp-red);
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin: 0;
+
+    i.f7-icons { font-size: 14px; flex-shrink: 0; }
+  }
+
+  .cp-save-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background: linear-gradient(135deg, #9184D9 0%, #6366F1 100%);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 14px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s ease, transform 0.1s ease;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    margin-top: 4px;
+
+    &:active:not(:disabled) { transform: scale(0.98); }
+    &:disabled { opacity: 0.6; cursor: default; }
+  }
+
+  .cp-btn-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: cpMoreSpin 0.7s linear infinite;
+  }
+
   .cp-slide-enter-active,
   .cp-slide-leave-active {
     transition: opacity 0.2s ease, transform 0.2s ease;

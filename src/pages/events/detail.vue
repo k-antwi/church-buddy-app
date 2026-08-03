@@ -51,7 +51,7 @@
           v-for="tab in tabs"
           :key="tab.id"
           :class="['cp-tab-btn', { 'cp-tab-btn--active': activeTab === tab.id }]"
-          @click="activeTab = tab.id"
+          @click="selectTab(tab.id)"
         >
           {{ tab.label }}
           <span v-if="tab.id === 'checkin' && totalCheckedIn > 0" class="cp-tab-count">
@@ -279,6 +279,7 @@ export default {
     const eventId = Number(props.f7route.params.id);
     const event = ref<MobileEventDetail | null>(null);
     const loading = ref(false);
+    const refreshing = ref(false);
     const error = ref('');
     const activeTab = ref('details');
     const generating = ref(false);
@@ -302,6 +303,23 @@ export default {
       } finally {
         loading.value = false;
       }
+    };
+
+    const refreshDetail = async () => {
+      if (refreshing.value || loading.value) return;
+      refreshing.value = true;
+      try {
+        event.value = await fetchEventDetail(eventId);
+      } catch {
+        // silent — keep existing data on failure
+      } finally {
+        refreshing.value = false;
+      }
+    };
+
+    const selectTab = (id: string) => {
+      activeTab.value = id;
+      refreshDetail();
     };
 
     const handleGenerateCheckinList = async () => {
@@ -422,9 +440,11 @@ export default {
     return {
       event,
       loading,
+      refreshing,
       error,
       activeTab,
       tabs,
+      selectTab,
       accentColor,
       totalCheckedIn,
       firstTimeCount,
