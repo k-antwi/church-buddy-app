@@ -101,6 +101,7 @@ export default {
       signingOut.value = true;
       await apiLogout();
       authState.loggedIn = false;
+      f7.tab.show('#view-home');
       f7.views.main.router.navigate('/', { clearPreviousHistory: true });
     }
 

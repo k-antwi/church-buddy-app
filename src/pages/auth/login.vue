@@ -134,21 +134,13 @@
                   <input
                     id="cp-password"
                     v-model="password"
-                    :type="showPass ? 'text' : 'password'"
+                    type="password"
                     autocomplete="current-password"
                     placeholder="••••••••"
                     @focus="focused = 'password'"
                     @blur="focused = ''"
                   />
                 </div>
-                <button
-                  type="button"
-                  class="cp-eye-btn"
-                  :aria-label="showPass ? 'Hide password' : 'Show password'"
-                  @click="showPass = !showPass"
-                >
-                  <i class="f7-icons">{{ showPass ? 'eye_slash_fill' : 'eye_fill' }}</i>
-                </button>
               </div>
 
               <a href="#" class="cp-forgot">Forgot password?</a>
@@ -200,8 +192,7 @@ export default {
     const tenant   = ref('');   // fully-resolved hostname, e.g. "christrends.churchpanel.org"
     const email    = ref('');
     const password = ref('');
-    const showPass = ref(false);
-    const loading  = ref(false);
+const loading  = ref(false);
     const focused  = ref('');
     const error    = ref('');
 
@@ -273,7 +264,7 @@ export default {
 
     return {
       step, domain, tenant, tenantName, resolvedHint,
-      email, password, showPass, loading, focused, error,
+      email, password, loading, focused, error,
       domainInput,
       handleContinue, skipToCredentials, backToDomain, handleLogin, goToRegister,
     };
