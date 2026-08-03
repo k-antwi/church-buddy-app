@@ -46,7 +46,7 @@
       </div>
 
       <!-- Tab bar -->
-      <div class="cp-tab-bar">
+      <div class="cp-tab-bar" :class="{ 'cp-tab-bar--refreshing': refreshing }">
         <button
           v-for="tab in tabs"
           :key="tab.id"
@@ -628,6 +628,9 @@ export default {
     gap: 0;
     padding: 12px 16px 0;
     border-bottom: 1px solid var(--cp-border);
+    transition: opacity 0.15s;
+
+    &--refreshing { opacity: 0.6; pointer-events: none; }
   }
 
   .cp-tab-btn {

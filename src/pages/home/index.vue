@@ -1,5 +1,6 @@
 <template>
   <f7-page name="home" class="cp-home-page" no-navbar @page:beforein="loadData">
+    <ComingSoonOverlay />
     <div class="cp-home-content">
 
       <!-- Header -->
@@ -80,6 +81,7 @@ import { ref, computed, onMounted } from 'vue';
 import { f7 } from 'framework7-vue';
 import { getStoredUser } from '../../ts/auth';
 import { fetchEvents, type MobileEvent } from '../../ts/api/events';
+import ComingSoonOverlay from '../../components/ComingSoonOverlay.vue';
 
 const DOW_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS_LONG = [
@@ -99,6 +101,7 @@ const ACCENT_COLORS: Record<number, string> = {
 
 export default {
   name: 'HomeDashboardPage',
+  components: { ComingSoonOverlay },
 
   setup() {
     const upcomingEvents = ref<MobileEvent[]>([]);

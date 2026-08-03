@@ -1,5 +1,6 @@
 <template>
   <f7-page name="people" class="cp-people-page">
+    <ComingSoonOverlay />
 
     <f7-navbar large :sliding="false">
       <f7-nav-title sliding>People</f7-nav-title>
@@ -73,6 +74,7 @@
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
+import ComingSoonOverlay from '../../components/ComingSoonOverlay.vue';
 
 const query       = ref('');
 const activeFilter = ref('all');
