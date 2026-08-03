@@ -75,7 +75,7 @@ export function getStoredUser(): AuthUser | null {
   try { return JSON.parse(raw) as AuthUser; } catch { return null; }
 }
 
-function storeUser(user: AuthUser): void {
+export function storeUser(user: AuthUser): void {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 
