@@ -14,6 +14,7 @@ export interface MobileEvent {
 export interface MobileAttendance {
   id: number;
   attendee_name: string | null;
+  attendee_phone: string | null;
   attendance_status: string;
   check_in_time: string | null;
   check_in_method: string | null;

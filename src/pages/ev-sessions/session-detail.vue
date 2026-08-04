@@ -64,30 +64,49 @@
         <div
           v-for="contact in session.contacts"
           :key="contact.id"
-          class="cp-contact-card"
+          class="cp-swipeable-wrapper"
+          @touchstart="onSwipeTouchStart($event, contact.id, !!contact.phone)"
+          @touchmove="onSwipeTouchMove($event, contact.id, !!contact.phone)"
+          @touchend="onSwipeTouchEnd($event, contact.id, !!contact.phone)"
         >
-          <div class="cp-contact-card__avatar">
-            {{ initials(contact) }}
-          </div>
-          <div class="cp-contact-card__body">
-            <div class="cp-contact-card__name">{{ contact.full_name }}</div>
-            <div v-if="contact.phone || contact.email" class="cp-contact-card__reach">
-              <span v-if="contact.phone">
-                <i class="f7-icons">phone_fill</i> {{ contact.phone }}
+          <!-- Call action (revealed on left-swipe) -->
+          <button
+            v-if="contact.phone"
+            class="cp-swipe-call-btn"
+            @click.stop="callContact(contact)"
+          >
+            <i class="f7-icons">phone_fill</i>
+            <span>Call</span>
+          </button>
+
+          <div
+            class="cp-contact-card"
+            :style="swipeCardStyle(contact.id)"
+            @click="closeSwipe(contact.id)"
+          >
+            <div class="cp-contact-card__avatar">
+              {{ initials(contact) }}
+            </div>
+            <div class="cp-contact-card__body">
+              <div class="cp-contact-card__name">{{ contact.full_name }}</div>
+              <div v-if="contact.phone || contact.email" class="cp-contact-card__reach">
+                <span v-if="contact.phone">
+                  <i class="f7-icons">phone_fill</i> {{ contact.phone }}
+                </span>
+                <span v-if="contact.email">
+                  <i class="f7-icons">envelope_fill</i> {{ contact.email }}
+                </span>
+              </div>
+              <div v-if="contact.notes" class="cp-contact-card__notes">{{ contact.notes }}</div>
+            </div>
+            <div class="cp-contact-card__outcome">
+              <span class="cp-outcome-badge" :class="`cp-outcome--${contact.outcome}`">
+                {{ contact.outcome_label }}
               </span>
-              <span v-if="contact.email">
-                <i class="f7-icons">envelope_fill</i> {{ contact.email }}
+              <span v-if="contact.is_promoted" class="cp-promoted-badge" title="Promoted to Contact">
+                <i class="f7-icons">checkmark_seal_fill</i>
               </span>
             </div>
-            <div v-if="contact.notes" class="cp-contact-card__notes">{{ contact.notes }}</div>
-          </div>
-          <div class="cp-contact-card__outcome">
-            <span class="cp-outcome-badge" :class="`cp-outcome--${contact.outcome}`">
-              {{ contact.outcome_label }}
-            </span>
-            <span v-if="contact.is_promoted" class="cp-promoted-badge" title="Promoted to Contact">
-              <i class="f7-icons">checkmark_seal_fill</i>
-            </span>
           </div>
         </div>
       </div>
@@ -218,6 +237,77 @@
       </f7-page>
     </f7-popup>
 
+    <!-- ── Log call popup ── -->
+    <f7-popup
+      class="cp-log-call-popup"
+      :opened="logCallPopupOpen"
+      @popup:closed="logCallPopupOpen = false"
+    >
+      <f7-page class="cp-log-call-page">
+        <f7-navbar title="Log Call">
+          <f7-nav-right>
+            <f7-link @click="dismissLogCall">Skip</f7-link>
+          </f7-nav-right>
+        </f7-navbar>
+
+        <f7-page-content>
+          <div class="cp-log-call-contact">
+            <div class="cp-log-call-contact__avatar">
+              {{ pendingCallContact ? (pendingCallContact.first_name[0] ?? '') + (pendingCallContact.last_name?.[0] ?? '') : '' }}
+            </div>
+            <div class="cp-log-call-contact__info">
+              <span class="cp-log-call-contact__name">{{ pendingCallContact?.full_name }}</span>
+              <span class="cp-log-call-contact__phone">{{ pendingCallContact?.phone }}</span>
+            </div>
+          </div>
+
+          <f7-block-title>How did the call go?</f7-block-title>
+          <div class="cp-log-call-outcomes">
+            <button
+              v-for="opt in LOG_CALL_OUTCOMES"
+              :key="opt.value"
+              :class="['cp-log-call-outcome-btn', { 'cp-log-call-outcome-btn--selected': logCallOutcome === opt.value }]"
+              @click="logCallOutcome = logCallOutcome === opt.value ? '' : opt.value"
+            >
+              {{ opt.label }}
+            </button>
+          </div>
+
+          <f7-list strong inset>
+            <f7-list-input
+              label="Notes"
+              type="textarea"
+              placeholder="Any notes about this call…"
+              resizable
+              :value="logCallNotes"
+              @input="logCallNotes = ($event.target as HTMLTextAreaElement).value"
+            />
+          </f7-list>
+
+          <f7-block v-if="logCallError">
+            <div class="cp-error" role="alert">
+              <i class="f7-icons">exclamationmark_circle_fill</i>
+              {{ logCallError }}
+            </div>
+          </f7-block>
+
+          <f7-block>
+            <f7-button
+              large
+              fill
+              round
+              :disabled="logCallSubmitting"
+              class="cp-submit-btn"
+              @click="submitLogCall"
+            >
+              <span v-if="!logCallSubmitting">Save</span>
+              <i v-else class="f7-icons cp-submit-spinner">arrow_2_circlepath</i>
+            </f7-button>
+          </f7-block>
+        </f7-page-content>
+      </f7-page>
+    </f7-popup>
+
   </f7-page>
 </template>
 
@@ -230,6 +320,7 @@ import {
   type EvSessionDetail,
   type EvContact,
 } from '../../ts/api/evangelism-sessions';
+import { logCall } from '../../ts/api/follow-ups';
 
 export default {
   name: 'EvSessionDetailPage',
@@ -323,6 +414,116 @@ export default {
       }
     };
 
+    // ── Swipe-to-call ──
+    const SWIPE_ACTION_WIDTH = 80;
+    const SWIPE_COMMIT_THRESHOLD = 36;
+
+    const swipeOffsets = ref<Record<number, number>>({});
+    const swipingId = ref<number | null>(null);
+    const openSwipeId = ref<number | null>(null);
+    const swipeTouchStartX = ref(0);
+    const swipeTouchStartY = ref(0);
+    const swipeIsHorizontal = ref(false);
+
+    const swipeCardStyle = (id: number) => ({
+      transform: `translateX(${swipeOffsets.value[id] ?? 0}px)`,
+      transition: swipingId.value === id ? 'none' : 'transform 0.25s ease',
+    });
+
+    const onSwipeTouchStart = (e: TouchEvent, id: number, hasPhone: boolean) => {
+      if (!hasPhone) return;
+      if (openSwipeId.value !== null && openSwipeId.value !== id) {
+        swipeOffsets.value = { ...swipeOffsets.value, [openSwipeId.value]: 0 };
+        openSwipeId.value = null;
+      }
+      swipeTouchStartX.value = e.touches[0].clientX;
+      swipeTouchStartY.value = e.touches[0].clientY;
+      swipeIsHorizontal.value = false;
+      swipingId.value = id;
+    };
+
+    const onSwipeTouchMove = (e: TouchEvent, id: number, hasPhone: boolean) => {
+      if (!hasPhone || swipingId.value !== id) return;
+      const dx = e.touches[0].clientX - swipeTouchStartX.value;
+      const dy = e.touches[0].clientY - swipeTouchStartY.value;
+      if (!swipeIsHorizontal.value) {
+        if (Math.abs(dy) > Math.abs(dx)) { swipingId.value = null; return; }
+        swipeIsHorizontal.value = true;
+      }
+      const base = openSwipeId.value === id ? -SWIPE_ACTION_WIDTH : 0;
+      swipeOffsets.value = { ...swipeOffsets.value, [id]: Math.min(0, Math.max(-SWIPE_ACTION_WIDTH, base + dx)) };
+    };
+
+    const onSwipeTouchEnd = (_e: TouchEvent, id: number, hasPhone: boolean) => {
+      if (!hasPhone || swipingId.value !== id) return;
+      const current = swipeOffsets.value[id] ?? 0;
+      const wasOpen = openSwipeId.value === id;
+      if (!wasOpen && current < -SWIPE_COMMIT_THRESHOLD) {
+        swipeOffsets.value = { ...swipeOffsets.value, [id]: -SWIPE_ACTION_WIDTH };
+        openSwipeId.value = id;
+      } else if (wasOpen && current > -SWIPE_ACTION_WIDTH + SWIPE_COMMIT_THRESHOLD) {
+        swipeOffsets.value = { ...swipeOffsets.value, [id]: 0 };
+        openSwipeId.value = null;
+      } else {
+        swipeOffsets.value = { ...swipeOffsets.value, [id]: wasOpen ? -SWIPE_ACTION_WIDTH : 0 };
+      }
+      swipingId.value = null;
+    };
+
+    const closeSwipe = (id: number) => {
+      if (openSwipeId.value === id) {
+        swipeOffsets.value = { ...swipeOffsets.value, [id]: 0 };
+        openSwipeId.value = null;
+      }
+    };
+
+    // ── Log-call popup ──
+    const LOG_CALL_OUTCOMES = [
+      { value: 'Answered',          label: 'Answered' },
+      { value: 'No answer',         label: 'No Answer' },
+      { value: 'Voicemail',         label: 'Voicemail' },
+      { value: 'Left message',      label: 'Left Message' },
+    ] as const;
+
+    const logCallPopupOpen   = ref(false);
+    const pendingCallContact = ref<EvContact | null>(null);
+    const logCallOutcome     = ref('');
+    const logCallNotes       = ref('');
+    const logCallSubmitting  = ref(false);
+    const logCallError       = ref('');
+
+    const callContact = (contact: EvContact) => {
+      if (!contact.phone) return;
+      closeSwipe(contact.id);
+      pendingCallContact.value = contact;
+      logCallOutcome.value     = '';
+      logCallNotes.value       = '';
+      logCallError.value       = '';
+      logCallPopupOpen.value   = true;
+      window.location.href     = `tel:${contact.phone}`;
+    };
+
+    const submitLogCall = async () => {
+      if (!pendingCallContact.value || logCallSubmitting.value) return;
+      logCallSubmitting.value = true;
+      logCallError.value      = '';
+      try {
+        await logCall(pendingCallContact.value.id, {
+          outcome: logCallOutcome.value || undefined,
+          notes:   logCallNotes.value.trim() || undefined,
+        });
+        logCallPopupOpen.value = false;
+      } catch (err) {
+        logCallError.value = err instanceof Error ? err.message : 'Failed to save.';
+      } finally {
+        logCallSubmitting.value = false;
+      }
+    };
+
+    const dismissLogCall = () => {
+      logCallPopupOpen.value = false;
+    };
+
     const initials = (contact: EvContact): string => {
       const f = contact.first_name?.[0] ?? '';
       const l = contact.last_name?.[0] ?? '';
@@ -354,6 +555,21 @@ export default {
       initials,
       formatDay,
       formatMonth,
+      swipeCardStyle,
+      onSwipeTouchStart,
+      onSwipeTouchMove,
+      onSwipeTouchEnd,
+      closeSwipe,
+      callContact,
+      LOG_CALL_OUTCOMES,
+      logCallPopupOpen,
+      pendingCallContact,
+      logCallOutcome,
+      logCallNotes,
+      logCallSubmitting,
+      logCallError,
+      submitLogCall,
+      dismissLogCall,
     };
   },
 };
@@ -604,6 +820,43 @@ export default {
     i.f7-icons { font-size: 14px; color: var(--cp-green); }
   }
 
+  /* ── Swipeable row ── */
+  .cp-swipeable-wrapper {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .cp-swipe-call-btn {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: #059669;
+    border: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    i.f7-icons {
+      font-size: 20px;
+      color: #fff;
+    }
+
+    span {
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      font-family: 'Outfit', -apple-system, sans-serif;
+      letter-spacing: 0.03em;
+    }
+  }
+
   /* ── FAB ── */
   .cp-fab {
     --f7-fab-bg-color: var(--cp-purple);
@@ -676,4 +929,90 @@ export default {
 }
 
 @keyframes cpSpin { to { transform: rotate(360deg); } }
+
+/* ── Log call popup ── */
+.cp-log-call-page {
+  --cp-bg: #F5F3FA;
+  --cp-surface: #FFFFFF;
+  --cp-border: rgba(145, 132, 217, 0.12);
+  --cp-purple: #9184D9;
+  --cp-purple-l: #6B5ABE;
+  --cp-text: #1A1730;
+  --cp-muted: #5E5A7E;
+
+  font-family: 'Outfit', -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  &.page { --f7-page-bg-color: var(--cp-bg); }
+  .page-content { background: var(--cp-bg) !important; }
+}
+
+.cp-log-call-contact {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 16px 16px 4px;
+  padding: 14px;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 14px;
+
+  &__avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(145, 132, 217, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--cp-purple-l);
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--cp-text);
+  }
+
+  &__phone {
+    font-size: 13px;
+    color: var(--cp-muted);
+  }
+}
+
+.cp-log-call-outcomes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 0 16px 8px;
+}
+
+.cp-log-call-outcome-btn {
+  height: 40px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(145, 132, 217, 0.25);
+  background: var(--cp-surface);
+  font-family: 'Outfit', -apple-system, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cp-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+  &--selected {
+    background: rgba(145, 132, 217, 0.12);
+    border-color: var(--cp-purple);
+    color: var(--cp-purple-l);
+  }
+}
 </style>

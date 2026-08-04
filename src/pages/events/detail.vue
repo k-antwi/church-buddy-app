@@ -199,57 +199,77 @@
           <div
             v-for="attendance in event.attendances"
             :key="attendance.id"
-            class="cp-checkin-card"
+            class="cp-swipeable-wrapper"
+            @touchstart="onSwipeTouchStart($event, attendance.id, !!attendance.attendee_phone)"
+            @touchmove="onSwipeTouchMove($event, attendance.id, !!attendance.attendee_phone)"
+            @touchend="onSwipeTouchEnd($event, attendance.id, !!attendance.attendee_phone)"
           >
-            <div class="cp-checkin-card__avatar" :class="{ 'cp-checkin-card__avatar--child': attendance.is_child }">
-              {{ initials(attendance.attendee_name) }}
-            </div>
-            <div class="cp-checkin-card__body">
-              <div class="cp-checkin-card__name">
-                {{ attendance.attendee_name ?? 'Unknown' }}
-                <span v-if="attendance.first_time_visitor" class="cp-first-time-dot" title="First-time visitor"></span>
+            <!-- Call action (revealed on left-swipe) -->
+            <button
+              v-if="attendance.attendee_phone"
+              class="cp-swipe-call-btn"
+              @click.stop="callAttendee(attendance)"
+            >
+              <i class="f7-icons">phone_fill</i>
+              <span>Call</span>
+            </button>
+
+            <!-- Card -->
+            <div
+              class="cp-checkin-card"
+              :style="swipeCardStyle(attendance.id)"
+              @click="closeSwipe(attendance.id)"
+            >
+              <div class="cp-checkin-card__avatar" :class="{ 'cp-checkin-card__avatar--child': attendance.is_child }">
+                {{ initials(attendance.attendee_name) }}
               </div>
-              <div class="cp-checkin-card__meta">
-                <template v-if="attendance.check_in_time">
-                  {{ formatTime(attendance.check_in_time) }}
-                </template>
+              <div class="cp-checkin-card__body">
+                <div class="cp-checkin-card__name">
+                  {{ attendance.attendee_name ?? 'Unknown' }}
+                  <span v-if="attendance.first_time_visitor" class="cp-first-time-dot" title="First-time visitor"></span>
+                </div>
+                <div class="cp-checkin-card__meta">
+                  <template v-if="attendance.check_in_time">
+                    {{ formatTime(attendance.check_in_time) }}
+                  </template>
+                </div>
               </div>
-            </div>
-            <div class="cp-checkin-card__action">
-              <button
-                v-if="attendance.attendance_status === 'present'"
-                class="cp-child-btn"
-                :class="{ 'cp-child-btn--active': attendance.is_child }"
-                :disabled="togglingChildId === attendance.id || togglingId === attendance.id || togglingFirstTimerId === attendance.id"
-                :title="attendance.is_child ? 'Mark as adult' : 'Mark as child'"
-                @click="toggleIsChild(attendance)"
-              >
-                <span v-if="togglingChildId === attendance.id" class="cp-toggle-btn__spinner"></span>
-                <i v-else class="f7-icons">person_crop_circle_fill</i>
-              </button>
-              <button
-                v-if="attendance.attendance_status === 'present'"
-                class="cp-first-timer-btn"
-                :class="{ 'cp-first-timer-btn--active': attendance.first_time_visitor }"
-                :disabled="togglingFirstTimerId === attendance.id || togglingId === attendance.id || togglingChildId === attendance.id"
-                :title="attendance.first_time_visitor ? 'Remove first-timer' : 'Mark as first-timer'"
-                @click="toggleFirstTimer(attendance)"
-              >
-                <span v-if="togglingFirstTimerId === attendance.id" class="cp-toggle-btn__spinner"></span>
-                <i v-else class="f7-icons">star_fill</i>
-              </button>
-              <button
-                class="cp-toggle-btn"
-                :class="attendance.attendance_status === 'present' ? 'cp-toggle-btn--present' : 'cp-toggle-btn--absent'"
-                :disabled="togglingId === attendance.id || togglingChildId === attendance.id || togglingFirstTimerId === attendance.id"
-                @click="toggleAttendance(attendance)"
-              >
-                <span v-if="togglingId === attendance.id" class="cp-toggle-btn__spinner"></span>
-                <template v-else>
-                  <i class="f7-icons">{{ attendance.attendance_status === 'present' ? 'checkmark_circle_fill' : 'circle' }}</i>
-                  {{ attendance.attendance_status === 'present' ? 'Present' : 'Absent' }}
-                </template>
-              </button>
+              <div class="cp-checkin-card__action">
+                <button
+                  v-if="attendance.attendance_status === 'present'"
+                  class="cp-child-btn"
+                  :class="{ 'cp-child-btn--active': attendance.is_child }"
+                  :disabled="togglingChildId === attendance.id || togglingId === attendance.id || togglingFirstTimerId === attendance.id"
+                  :title="attendance.is_child ? 'Mark as adult' : 'Mark as child'"
+                  @click.stop="toggleIsChild(attendance)"
+                >
+                  <span v-if="togglingChildId === attendance.id" class="cp-toggle-btn__spinner"></span>
+                  <i v-else class="f7-icons">person_crop_circle_fill</i>
+                </button>
+                <button
+                  v-if="attendance.attendance_status === 'present'"
+                  class="cp-first-timer-btn"
+                  :class="{ 'cp-first-timer-btn--active': attendance.first_time_visitor }"
+                  :disabled="togglingFirstTimerId === attendance.id || togglingId === attendance.id || togglingChildId === attendance.id"
+                  :title="attendance.first_time_visitor ? 'Remove first-timer' : 'Mark as first-timer'"
+                  @click.stop="toggleFirstTimer(attendance)"
+                >
+                  <span v-if="togglingFirstTimerId === attendance.id" class="cp-toggle-btn__spinner"></span>
+                  <i v-else class="f7-icons">star_fill</i>
+                </button>
+                <button
+                  class="cp-toggle-btn"
+                  :class="attendance.attendance_status === 'present' ? 'cp-toggle-btn--present' : 'cp-toggle-btn--absent'"
+                  :disabled="togglingId === attendance.id || togglingChildId === attendance.id || togglingFirstTimerId === attendance.id"
+                  @click.stop="toggleAttendance(attendance)"
+                >
+                  <span v-if="togglingId === attendance.id" class="cp-toggle-btn__spinner"></span>
+                  <template v-else>
+                    <i class="f7-icons">{{ attendance.attendance_status === 'present' ? 'checkmark_circle_fill' : 'circle' }}</i>
+                    {{ attendance.attendance_status === 'present' ? 'Present' : 'Absent' }}
+                  </template>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -299,6 +319,74 @@ export default {
     const togglingId = ref<number | null>(null);
     const togglingChildId = ref<number | null>(null);
     const togglingFirstTimerId = ref<number | null>(null);
+
+    // ── Swipe-to-call ──
+    const SWIPE_ACTION_WIDTH = 80;
+    const SWIPE_COMMIT_THRESHOLD = 36;
+
+    const swipeOffsets = ref<Record<number, number>>({});
+    const swipingId = ref<number | null>(null);
+    const openSwipeId = ref<number | null>(null);
+    const swipeTouchStartX = ref(0);
+    const swipeTouchStartY = ref(0);
+    const swipeIsHorizontal = ref(false);
+
+    const swipeCardStyle = (id: number) => ({
+      transform: `translateX(${swipeOffsets.value[id] ?? 0}px)`,
+      transition: swipingId.value === id ? 'none' : 'transform 0.25s ease',
+    });
+
+    const onSwipeTouchStart = (e: TouchEvent, id: number, hasPhone: boolean) => {
+      if (!hasPhone) return;
+      if (openSwipeId.value !== null && openSwipeId.value !== id) {
+        swipeOffsets.value = { ...swipeOffsets.value, [openSwipeId.value]: 0 };
+        openSwipeId.value = null;
+      }
+      swipeTouchStartX.value = e.touches[0].clientX;
+      swipeTouchStartY.value = e.touches[0].clientY;
+      swipeIsHorizontal.value = false;
+      swipingId.value = id;
+    };
+
+    const onSwipeTouchMove = (e: TouchEvent, id: number, hasPhone: boolean) => {
+      if (!hasPhone || swipingId.value !== id) return;
+      const dx = e.touches[0].clientX - swipeTouchStartX.value;
+      const dy = e.touches[0].clientY - swipeTouchStartY.value;
+      if (!swipeIsHorizontal.value) {
+        if (Math.abs(dy) > Math.abs(dx)) { swipingId.value = null; return; }
+        swipeIsHorizontal.value = true;
+      }
+      const base = openSwipeId.value === id ? -SWIPE_ACTION_WIDTH : 0;
+      swipeOffsets.value = { ...swipeOffsets.value, [id]: Math.min(0, Math.max(-SWIPE_ACTION_WIDTH, base + dx)) };
+    };
+
+    const onSwipeTouchEnd = (_e: TouchEvent, id: number, hasPhone: boolean) => {
+      if (!hasPhone || swipingId.value !== id) return;
+      const current = swipeOffsets.value[id] ?? 0;
+      const wasOpen = openSwipeId.value === id;
+      if (!wasOpen && current < -SWIPE_COMMIT_THRESHOLD) {
+        swipeOffsets.value = { ...swipeOffsets.value, [id]: -SWIPE_ACTION_WIDTH };
+        openSwipeId.value = id;
+      } else if (wasOpen && current > -SWIPE_ACTION_WIDTH + SWIPE_COMMIT_THRESHOLD) {
+        swipeOffsets.value = { ...swipeOffsets.value, [id]: 0 };
+        openSwipeId.value = null;
+      } else {
+        swipeOffsets.value = { ...swipeOffsets.value, [id]: wasOpen ? -SWIPE_ACTION_WIDTH : 0 };
+      }
+      swipingId.value = null;
+    };
+
+    const closeSwipe = (id: number) => {
+      if (openSwipeId.value === id) {
+        swipeOffsets.value = { ...swipeOffsets.value, [id]: 0 };
+        openSwipeId.value = null;
+      }
+    };
+
+    const callAttendee = (attendance: MobileAttendance) => {
+      if (!attendance.attendee_phone) return;
+      window.location.href = `tel:${attendance.attendee_phone}`;
+    };
 
     const tabs = [
       { id: 'details', label: 'Details' },
@@ -493,6 +581,12 @@ export default {
       toggleFirstTimer,
       handleGenerateCheckinList,
       toggleAttendance,
+      swipeCardStyle,
+      onSwipeTouchStart,
+      onSwipeTouchMove,
+      onSwipeTouchEnd,
+      closeSwipe,
+      callAttendee,
       formatDay,
       formatMonth,
       formatTime,
@@ -843,6 +937,8 @@ export default {
     border: 1px solid var(--cp-border);
     border-radius: 14px;
     padding: 12px 14px;
+    position: relative;
+    z-index: 1;
 
     &__avatar {
       width: 40px;
@@ -979,6 +1075,43 @@ export default {
     }
 
     &:disabled { opacity: 0.45; cursor: default; }
+  }
+
+  /* ── Swipeable row ── */
+  .cp-swipeable-wrapper {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .cp-swipe-call-btn {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: #059669;
+    border: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    i.f7-icons {
+      font-size: 20px;
+      color: #fff;
+    }
+
+    span {
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      font-family: 'Outfit', -apple-system, sans-serif;
+      letter-spacing: 0.03em;
+    }
   }
 
   /* ── First-timer toggle ── */
