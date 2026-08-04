@@ -217,9 +217,10 @@
             </div>
             <div class="cp-checkin-card__action">
               <button
+                v-if="attendance.attendance_status === 'present'"
                 class="cp-child-btn"
                 :class="{ 'cp-child-btn--active': attendance.is_child }"
-                :disabled="togglingChildId === attendance.id || togglingId === attendance.id"
+                :disabled="togglingChildId === attendance.id || togglingId === attendance.id || togglingFirstTimerId === attendance.id"
                 :title="attendance.is_child ? 'Mark as adult' : 'Mark as child'"
                 @click="toggleIsChild(attendance)"
               >
@@ -227,9 +228,20 @@
                 <i v-else class="f7-icons">person_crop_circle_fill</i>
               </button>
               <button
+                v-if="attendance.attendance_status === 'present'"
+                class="cp-first-timer-btn"
+                :class="{ 'cp-first-timer-btn--active': attendance.first_time_visitor }"
+                :disabled="togglingFirstTimerId === attendance.id || togglingId === attendance.id || togglingChildId === attendance.id"
+                :title="attendance.first_time_visitor ? 'Remove first-timer' : 'Mark as first-timer'"
+                @click="toggleFirstTimer(attendance)"
+              >
+                <span v-if="togglingFirstTimerId === attendance.id" class="cp-toggle-btn__spinner"></span>
+                <i v-else class="f7-icons">star_fill</i>
+              </button>
+              <button
                 class="cp-toggle-btn"
                 :class="attendance.attendance_status === 'present' ? 'cp-toggle-btn--present' : 'cp-toggle-btn--absent'"
-                :disabled="togglingId === attendance.id || togglingChildId === attendance.id"
+                :disabled="togglingId === attendance.id || togglingChildId === attendance.id || togglingFirstTimerId === attendance.id"
                 @click="toggleAttendance(attendance)"
               >
                 <span v-if="togglingId === attendance.id" class="cp-toggle-btn__spinner"></span>
@@ -254,6 +266,7 @@ import {
   generateCheckinList,
   updateAttendanceStatus,
   updateAttendanceIsChild,
+  updateAttendanceFirstTimeVisitor,
   type MobileEventDetail,
   type MobileAttendance,
 } from '../../ts/api/events';
@@ -285,6 +298,7 @@ export default {
     const generating = ref(false);
     const togglingId = ref<number | null>(null);
     const togglingChildId = ref<number | null>(null);
+    const togglingFirstTimerId = ref<number | null>(null);
 
     const tabs = [
       { id: 'details', label: 'Details' },
@@ -349,6 +363,23 @@ export default {
         console.error(err);
       } finally {
         togglingChildId.value = null;
+      }
+    };
+
+    const toggleFirstTimer = async (attendance: MobileAttendance) => {
+      if (togglingId.value !== null || togglingChildId.value !== null || togglingFirstTimerId.value !== null || !event.value) return;
+      togglingFirstTimerId.value = attendance.id;
+      const newValue = !attendance.first_time_visitor;
+      attendance.first_time_visitor = newValue;
+      try {
+        const updated = await updateAttendanceFirstTimeVisitor(eventId, attendance.id, newValue);
+        const idx = event.value.attendances.findIndex(a => a.id === attendance.id);
+        if (idx !== -1) event.value.attendances[idx] = updated;
+      } catch (err) {
+        attendance.first_time_visitor = !newValue;
+        console.error(err);
+      } finally {
+        togglingFirstTimerId.value = null;
       }
     };
 
@@ -454,10 +485,12 @@ export default {
       generating,
       togglingId,
       togglingChildId,
+      togglingFirstTimerId,
       isCheckinWindowOpen,
       presentAttendances,
       loadDetail,
       toggleIsChild,
+      toggleFirstTimer,
       handleGenerateCheckinList,
       toggleAttendance,
       formatDay,
@@ -943,6 +976,31 @@ export default {
     &--active {
       background: rgba(245, 158, 11, 0.14);
       i.f7-icons { color: #B45309; }
+    }
+
+    &:disabled { opacity: 0.45; cursor: default; }
+  }
+
+  /* ── First-timer toggle ── */
+  .cp-first-timer-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s;
+    background: rgba(107, 114, 128, 0.08);
+    flex-shrink: 0;
+
+    i.f7-icons { font-size: 15px; color: #9CA3AF; transition: color 0.15s; }
+
+    &--active {
+      background: rgba(145, 132, 217, 0.16);
+      i.f7-icons { color: var(--cp-purple); }
     }
 
     &:disabled { opacity: 0.45; cursor: default; }

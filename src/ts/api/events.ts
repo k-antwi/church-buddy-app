@@ -77,3 +77,17 @@ export async function updateAttendanceIsChild(
   const json = await res.json() as { data: MobileAttendance };
   return json.data;
 }
+
+export async function updateAttendanceFirstTimeVisitor(
+  eventId: number,
+  attendanceId: number,
+  firstTimeVisitor: boolean,
+): Promise<MobileAttendance> {
+  const res = await apiFetch(`/api/mobile/events/${eventId}/attendances/${attendanceId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ first_time_visitor: firstTimeVisitor }),
+  });
+  if (!res.ok) throw new Error(`Failed to update attendance (${res.status})`);
+  const json = await res.json() as { data: MobileAttendance };
+  return json.data;
+}
