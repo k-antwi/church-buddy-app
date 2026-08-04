@@ -67,7 +67,7 @@
 </template>
 
 <script lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { f7 } from 'framework7-vue';
 import { fetchSessions, type EvSession } from '../../ts/api/evangelism-sessions';
 
@@ -102,6 +102,8 @@ export default {
     const formatMonth = (dateStr: string) => {
       return new Date(dateStr + 'T00:00:00').toLocaleString('en', { month: 'short' }).toUpperCase();
     };
+
+    onMounted(loadSessions);
 
     return { sessions, loading, error, loadSessions, openSession, formatDay, formatMonth };
   },

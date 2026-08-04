@@ -176,6 +176,8 @@ export default {
       f7.views.get('#view-events')?.router.navigate(`/events/${id}/`);
     };
 
+    onMounted(loadData);
+
     return {
       upcomingEvents,
       loadingEvents,

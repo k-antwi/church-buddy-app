@@ -222,7 +222,7 @@
 </template>
 
 <script lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import {
   fetchSession,
   captureContact,
@@ -334,6 +334,8 @@ export default {
 
     const formatMonth = (dateStr: string) =>
       new Date(dateStr + 'T00:00:00').toLocaleString('en', { month: 'short' }).toUpperCase();
+
+    onMounted(loadDetail);
 
     return {
       session,

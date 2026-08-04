@@ -85,7 +85,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import ComingSoonOverlay from '../../components/ComingSoonOverlay.vue';
 import { fetchPeople, type MobilePerson } from '../../ts/api/people';
 
@@ -143,6 +143,8 @@ async function loadPeople(): Promise<void> {
     loading.value = false;
   }
 }
+
+onMounted(loadPeople);
 </script>
 
 <style lang="scss">

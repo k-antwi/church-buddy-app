@@ -84,7 +84,7 @@
 </template>
 
 <script lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { f7 } from 'framework7-vue';
 import { fetchEvents, type MobileEvent } from '../../ts/api/events';
 
@@ -214,6 +214,8 @@ export default {
     const openEvent = (id: number) => {
       f7.views.get('#view-events')?.router.navigate(`/events/${id}/`);
     };
+
+    onMounted(loadEvents);
 
     return {
       loading,

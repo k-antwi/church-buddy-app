@@ -248,7 +248,7 @@
 </template>
 
 <script lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import {
   fetchEventDetail,
   generateCheckinList,
@@ -436,6 +436,8 @@ export default {
       const parts = name.trim().split(' ');
       return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || '?';
     };
+
+    onMounted(loadDetail);
 
     return {
       event,
