@@ -26,6 +26,16 @@ export interface EvContact {
   promoted_at?: string | null;
 }
 
+export interface MobileEvContact {
+  id: number;
+  first_name: string;
+  last_name: string;
+  phone: string | null;
+  email: string | null;
+  outcome: string | null;
+  session: { id: number; location: string } | null;
+}
+
 export interface EvSessionDetail extends Omit<EvSession, 'contacts_count'> {
   contacts: EvContact[];
 }
@@ -60,6 +70,13 @@ export const OUTCOME_OPTIONS = [
   { value: 'follow_up_requested', label: 'Follow-up Requested', color: '#F59E0B' },
   { value: 'saved', label: 'Saved', color: '#10B981' },
 ] as const;
+
+export async function fetchEvContacts(): Promise<MobileEvContact[]> {
+  const res = await apiFetch('/api/mobile/ev-contacts');
+  if (!res.ok) throw new Error(`Failed to load evangelism contacts (${res.status})`);
+  const json = await res.json() as { data: MobileEvContact[] };
+  return json.data;
+}
 
 export async function fetchSessions(): Promise<EvSession[]> {
   const res = await apiFetch('/api/mobile/ev-sessions');

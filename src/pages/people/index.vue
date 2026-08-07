@@ -1,6 +1,5 @@
 <template>
-  <f7-page name="people" class="cp-people-page" @page:beforein="loadPeople">
-    <ComingSoonOverlay />
+  <f7-page name="people" class="cp-people-page" @page:beforein="loadAll">
 
     <f7-navbar large :sliding="false">
       <f7-nav-title sliding>People</f7-nav-title>
@@ -25,17 +24,23 @@
           placeholder="Search people..."
           class="cp-search-input"
         />
+        <button v-if="query" class="cp-search-clear" @click="query = ''">
+          <i class="f7-icons">xmark_circle_fill</i>
+        </button>
       </div>
     </div>
 
-    <!-- Filter chips -->
-    <div class="cp-chips">
+    <!-- Tab bar -->
+    <div class="cp-tab-bar">
       <button
-        v-for="f in filters"
-        :key="f.id"
-        :class="['cp-chip', { 'cp-chip--active': activeFilter === f.id }]"
-        @click="activeFilter = f.id"
-      >{{ f.label }}</button>
+        v-for="tab in tabs"
+        :key="tab.id"
+        :class="['cp-tab-btn', { 'cp-tab-btn--active': activeTab === tab.id }]"
+        @click="activeTab = tab.id"
+      >
+        {{ tab.label }}
+        <span v-if="!loading && tab.count > 0" class="cp-tab-count">{{ tab.count }}</span>
+      </button>
     </div>
 
     <!-- Loading -->
@@ -47,69 +52,151 @@
     <div v-else-if="error" class="cp-error-state">
       <i class="f7-icons">exclamationmark_triangle_fill</i>
       <p>{{ error }}</p>
-      <button class="cp-retry-btn" @click="loadPeople">Try again</button>
+      <button class="cp-retry-btn" @click="loadAll">Try again</button>
     </div>
 
-    <!-- People list -->
-    <div v-else class="cp-list">
-      <div
-        v-for="(person, idx) in filteredPeople"
-        :key="person.id"
-        class="cp-person"
-        :class="{ 'cp-person--last': idx === filteredPeople.length - 1 }"
-      >
-        <div class="cp-avatar" :style="{ background: avatarColor(person) }">
-          {{ initials(person) }}
+    <template v-else>
+      <!-- All tab -->
+      <div v-show="activeTab === 'all'">
+        <div v-if="allItems.length" class="cp-list">
+          <div
+            v-for="(item, idx) in allItems"
+            :key="item.uid"
+            class="cp-person"
+            :class="{ 'cp-person--last': idx === allItems.length - 1 }"
+          >
+            <div class="cp-avatar" :style="{ background: avatarColor(item.first_name, item.last_name) }">
+              {{ initials(item.first_name, item.last_name) }}
+            </div>
+            <div class="cp-person-info">
+              <span class="cp-person-name">{{ item.first_name }} {{ item.last_name }}</span>
+              <span class="cp-person-sub">{{ item.sub }}</span>
+            </div>
+            <div class="cp-person-end">
+              <span :class="['cp-kind-badge', `cp-kind-badge--${item.kind}`]">{{ kindLabel(item.kind) }}</span>
+            </div>
+          </div>
         </div>
-
-        <div class="cp-person-info">
-          <span class="cp-person-name">{{ person.first_name }} {{ person.last_name }}</span>
-          <span class="cp-person-sub">{{ person.branch?.name ?? person.type ?? 'Member' }}</span>
-        </div>
-
-        <div class="cp-person-end">
-          <span
-            v-if="person.type"
-            :class="['cp-badge', `cp-badge--${person.type}`]"
-          >{{ typeLabel(person.type) }}</span>
-          <i v-else class="f7-icons cp-chevron">chevron_right</i>
-        </div>
+        <div v-else class="cp-empty">No results found.</div>
       </div>
 
-      <div v-if="filteredPeople.length === 0 && !loading" class="cp-empty">
-        No people found.
+      <!-- Members tab -->
+      <div v-show="activeTab === 'members'">
+        <div v-if="filteredPeople.length" class="cp-list">
+          <div
+            v-for="(person, idx) in filteredPeople"
+            :key="person.id"
+            class="cp-person"
+            :class="{ 'cp-person--last': idx === filteredPeople.length - 1 }"
+          >
+            <div class="cp-avatar" :style="{ background: avatarColor(person.first_name, person.last_name) }">
+              {{ initials(person.first_name, person.last_name) }}
+            </div>
+            <div class="cp-person-info">
+              <span class="cp-person-name">{{ person.first_name }} {{ person.last_name }}</span>
+              <span class="cp-person-sub">{{ person.branch?.name ?? person.type ?? 'Member' }}</span>
+            </div>
+            <div class="cp-person-end">
+              <span v-if="person.type" :class="['cp-badge', `cp-badge--${person.type}`]">
+                {{ typeLabel(person.type) }}
+              </span>
+              <i v-else class="f7-icons cp-chevron">chevron_right</i>
+            </div>
+          </div>
+        </div>
+        <div v-else class="cp-empty">No members found.</div>
       </div>
-    </div>
+
+      <!-- Contacts tab -->
+      <div v-show="activeTab === 'contacts'">
+        <div v-if="filteredContacts.length" class="cp-list">
+          <div
+            v-for="(contact, idx) in filteredContacts"
+            :key="contact.id"
+            class="cp-person"
+            :class="{ 'cp-person--last': idx === filteredContacts.length - 1 }"
+          >
+            <div class="cp-avatar" :style="{ background: avatarColor(contact.first_name, contact.last_name) }">
+              {{ initials(contact.first_name, contact.last_name) }}
+            </div>
+            <div class="cp-person-info">
+              <span class="cp-person-name">{{ contact.first_name }} {{ contact.last_name }}</span>
+              <span class="cp-person-sub">{{ contact.branch?.name ?? contact.contact_source ?? 'Contact' }}</span>
+            </div>
+            <div class="cp-person-end">
+              <span v-if="contact.stage" :class="['cp-badge', `cp-badge--stage-${contact.stage}`]">
+                {{ stageLabel(contact.stage) }}
+              </span>
+              <i v-else class="f7-icons cp-chevron">chevron_right</i>
+            </div>
+          </div>
+        </div>
+        <div v-else class="cp-empty">No contacts found.</div>
+      </div>
+
+      <!-- Ev Contacts tab -->
+      <div v-show="activeTab === 'ev_contacts'">
+        <div v-if="filteredEvContacts.length" class="cp-list">
+          <div
+            v-for="(ec, idx) in filteredEvContacts"
+            :key="ec.id"
+            class="cp-person"
+            :class="{ 'cp-person--last': idx === filteredEvContacts.length - 1 }"
+          >
+            <div class="cp-avatar" :style="{ background: avatarColor(ec.first_name, ec.last_name) }">
+              {{ initials(ec.first_name, ec.last_name) }}
+            </div>
+            <div class="cp-person-info">
+              <span class="cp-person-name">{{ ec.first_name }} {{ ec.last_name }}</span>
+              <span class="cp-person-sub">{{ ec.session?.location ?? 'Evangelism' }}</span>
+            </div>
+            <div class="cp-person-end">
+              <span v-if="ec.outcome" :class="['cp-badge', `cp-badge--outcome-${ec.outcome}`]">
+                {{ outcomeLabel(ec.outcome) }}
+              </span>
+              <i v-else class="f7-icons cp-chevron">chevron_right</i>
+            </div>
+          </div>
+        </div>
+        <div v-else class="cp-empty">No evangelism contacts found.</div>
+      </div>
+    </template>
 
   </f7-page>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted } from 'vue';
-import ComingSoonOverlay from '../../components/ComingSoonOverlay.vue';
-import { fetchPeople, type MobilePerson } from '../../ts/api/people';
+import { ref, computed } from 'vue';
+import { fetchPeople, fetchContacts, type MobilePerson, type MobileContact } from '../../ts/api/people';
+import { fetchEvContacts, type MobileEvContact } from '../../ts/api/evangelism-sessions';
 
-const query        = ref('');
-const activeFilter = ref('all');
-const people       = ref<MobilePerson[]>([]);
-const loading      = ref(false);
-const error        = ref('');
+type TabId = 'all' | 'members' | 'contacts' | 'ev_contacts';
 
-const filters = [
-  { id: 'all',     label: 'All'     },
-  { id: 'member',  label: 'Members' },
-  { id: 'leader',  label: 'Leaders' },
-  { id: 'visitor', label: 'Visitors' },
-];
+interface UnifiedItem {
+  uid: string;
+  first_name: string;
+  last_name: string;
+  sub: string;
+  kind: 'member' | 'contact' | 'ev_contact';
+}
+
+const query      = ref('');
+const activeTab  = ref<TabId>('all');
+const loading    = ref(false);
+const error      = ref('');
+
+const people     = ref<MobilePerson[]>([]);
+const contacts   = ref<MobileContact[]>([]);
+const evContacts = ref<MobileEvContact[]>([]);
 
 const AVATAR_COLORS = ['#9184D9', '#6366F1', '#10B981', '#F59E0B', '#14B8A6', '#F97168', '#E8A548'];
 
-function initials(person: MobilePerson): string {
-  return `${person.first_name[0] ?? ''}${person.last_name[0] ?? ''}`.toUpperCase();
+function initials(firstName: string, lastName: string): string {
+  return `${firstName[0] ?? ''}${lastName[0] ?? ''}`.toUpperCase();
 }
 
-function avatarColor(person: MobilePerson): string {
-  const code = (person.first_name.charCodeAt(0) + person.last_name.charCodeAt(0)) % AVATAR_COLORS.length;
+function avatarColor(firstName: string, lastName: string): string {
+  const code = ((firstName.charCodeAt(0) || 0) + (lastName.charCodeAt(0) || 0)) % AVATAR_COLORS.length;
   return AVATAR_COLORS[code];
 }
 
@@ -118,33 +205,99 @@ function typeLabel(type: string): string {
   return map[type] ?? type;
 }
 
-const filteredPeople = computed(() => {
-  let list = people.value;
-  if (activeFilter.value !== 'all') {
-    list = list.filter(p => p.type === activeFilter.value);
-  }
-  if (query.value.trim()) {
-    const q = query.value.toLowerCase();
-    list = list.filter(p =>
-      `${p.first_name} ${p.last_name}`.toLowerCase().includes(q),
-    );
-  }
-  return list;
+function stageLabel(stage: string): string {
+  const map: Record<string, string> = {
+    new: 'New',
+    following_up: 'Following Up',
+    graduated: 'Graduated',
+  };
+  return map[stage] ?? stage;
+}
+
+function outcomeLabel(outcome: string): string {
+  const map: Record<string, string> = {
+    interested: 'Interested',
+    prayed: 'Prayed',
+    declined: 'Declined',
+    follow_up_requested: 'Follow-up',
+    saved: 'Saved',
+  };
+  return map[outcome] ?? outcome;
+}
+
+function kindLabel(kind: UnifiedItem['kind']): string {
+  return kind === 'member' ? 'Member' : kind === 'contact' ? 'Contact' : 'Ev Contact';
+}
+
+function matchesQuery(firstName: string, lastName: string): boolean {
+  if (!query.value.trim()) return true;
+  const q = query.value.toLowerCase();
+  return `${firstName} ${lastName}`.toLowerCase().includes(q);
+}
+
+const filteredPeople = computed(() =>
+  people.value.filter(p => matchesQuery(p.first_name, p.last_name)),
+);
+
+const filteredContacts = computed(() =>
+  contacts.value.filter(c => matchesQuery(c.first_name, c.last_name)),
+);
+
+const filteredEvContacts = computed(() =>
+  evContacts.value.filter(ec => matchesQuery(ec.first_name, ec.last_name)),
+);
+
+const allItems = computed((): UnifiedItem[] => {
+  const items: UnifiedItem[] = [
+    ...filteredPeople.value.map(p => ({
+      uid: `p-${p.id}`,
+      first_name: p.first_name,
+      last_name: p.last_name,
+      sub: p.branch?.name ?? p.type ?? 'Member',
+      kind: 'member' as const,
+    })),
+    ...filteredContacts.value.map(c => ({
+      uid: `c-${c.id}`,
+      first_name: c.first_name,
+      last_name: c.last_name,
+      sub: c.branch?.name ?? c.contact_source ?? 'Contact',
+      kind: 'contact' as const,
+    })),
+    ...filteredEvContacts.value.map(ec => ({
+      uid: `ev-${ec.id}`,
+      first_name: ec.first_name,
+      last_name: ec.last_name,
+      sub: ec.session?.location ?? 'Evangelism',
+      kind: 'ev_contact' as const,
+    })),
+  ];
+  return items.sort((a, b) =>
+    `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`),
+  );
 });
 
-async function loadPeople(): Promise<void> {
+const tabs = computed(() => [
+  { id: 'all' as TabId,         label: 'All',         count: allItems.value.length },
+  { id: 'members' as TabId,     label: 'Members',     count: filteredPeople.value.length },
+  { id: 'contacts' as TabId,    label: 'Contacts',    count: filteredContacts.value.length },
+  { id: 'ev_contacts' as TabId, label: 'Ev Contacts', count: filteredEvContacts.value.length },
+]);
+
+async function loadAll(): Promise<void> {
   loading.value = true;
   error.value = '';
   try {
-    people.value = await fetchPeople();
+    [people.value, contacts.value, evContacts.value] = await Promise.all([
+      fetchPeople(),
+      fetchContacts(),
+      fetchEvContacts(),
+    ]);
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load people.';
   } finally {
     loading.value = false;
   }
 }
-
-onMounted(loadPeople);
 </script>
 
 <style lang="scss">
@@ -182,37 +335,69 @@ onMounted(loadPeople);
     &::-webkit-search-cancel-button { display: none; }
   }
 
-  /* ── Filter chips ── */
-  .cp-chips {
+  .cp-search-clear {
+    border: none;
+    background: transparent;
+    padding: 0;
     display: flex;
-    gap: var(--m-sp-2);
+    align-items: center;
+    cursor: pointer;
+    color: var(--m-text-3);
+
+    .f7-icons { font-size: 17px; }
+  }
+
+  /* ── Tab bar ── */
+  .cp-tab-bar {
+    display: flex;
+    gap: 4px;
     padding: 0 var(--m-sp-4) var(--m-sp-3);
     overflow-x: auto;
 
     &::-webkit-scrollbar { display: none; }
   }
 
-  .cp-chip {
-    padding: 6px var(--m-sp-4);
+  .cp-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px var(--m-sp-4);
     border-radius: 999px;
     font-size: 14px;
     font-weight: 500;
-    border: 1.5px solid transparent;
-    background: transparent;
+    border: 1.5px solid var(--m-border);
+    background: var(--m-surface);
     color: var(--m-text-2);
     cursor: pointer;
     white-space: nowrap;
     transition: background 0.15s, color 0.15s, border-color 0.15s;
+    -webkit-tap-highlight-color: transparent;
 
     &--active {
       background: var(--m-accent);
       color: #fff;
-    }
+      border-color: var(--m-accent);
 
-    &:not(.cp-chip--active) {
-      border-color: var(--m-border);
-      background: var(--m-surface);
+      .cp-tab-count {
+        background: rgba(255, 255, 255, 0.25);
+        color: #fff;
+      }
     }
+  }
+
+  .cp-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(145, 132, 217, 0.12);
+    color: var(--m-accent);
+    line-height: 1;
   }
 
   /* ── Loading / error states ── */
@@ -322,27 +507,35 @@ onMounted(loadPeople);
   }
 
   /* ── Badges ── */
-  .cp-badge {
-    font-size: 12px;
+  .cp-badge,
+  .cp-kind-badge {
+    font-size: 11px;
     font-weight: 600;
-    padding: 4px 10px;
+    padding: 4px 9px;
     border-radius: 999px;
-
-    &--member {
-      background: #E8F7EE;
-      color: #27A155;
-    }
-
-    &--leader {
-      background: #EDE9F9;
-      color: #9184D9;
-    }
-
-    &--visitor {
-      background: #FEF3E2;
-      color: #D4880A;
-    }
   }
+
+  /* Member/person type badges */
+  .cp-badge--member   { background: #E8F7EE; color: #27A155; }
+  .cp-badge--leader   { background: #EDE9F9; color: #9184D9; }
+  .cp-badge--visitor  { background: #FEF3E2; color: #D4880A; }
+
+  /* Contact stage badges */
+  .cp-badge--stage-new          { background: #EFF6FF; color: #3B82F6; }
+  .cp-badge--stage-following_up { background: #FEF3E2; color: #D4880A; }
+  .cp-badge--stage-graduated    { background: #E8F7EE; color: #27A155; }
+
+  /* Evangelism outcome badges */
+  .cp-badge--outcome-interested         { background: #EFF6FF; color: #3B82F6; }
+  .cp-badge--outcome-prayed             { background: #EDE9F9; color: #9184D9; }
+  .cp-badge--outcome-declined           { background: #F3F4F6; color: #6B7280; }
+  .cp-badge--outcome-follow_up_requested { background: #FEF3E2; color: #D4880A; }
+  .cp-badge--outcome-saved              { background: #E8F7EE; color: #27A155; }
+
+  /* Kind badges (All tab) */
+  .cp-kind-badge--member     { background: #EDE9F9; color: #9184D9; }
+  .cp-kind-badge--contact    { background: #EFF6FF; color: #3B82F6; }
+  .cp-kind-badge--ev_contact { background: #FEF3E2; color: #D4880A; }
 
   /* ── Navbar icon buttons ── */
   .cp-icon-btn {
