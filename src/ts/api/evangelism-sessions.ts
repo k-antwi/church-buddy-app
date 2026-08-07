@@ -39,6 +39,20 @@ export interface CaptureContactPayload {
   notes?: string;
 }
 
+export interface Campaign {
+  id: number;
+  title: string;
+  status: string;
+}
+
+export interface CreateSessionPayload {
+  campaign_id?: number | null;
+  date: string;
+  location: string;
+  team_size?: number;
+  notes?: string;
+}
+
 export const OUTCOME_OPTIONS = [
   { value: 'interested', label: 'Interested', color: '#3B82F6' },
   { value: 'prayed', label: 'Prayed', color: '#8B5CF6' },
@@ -58,6 +72,26 @@ export async function fetchSession(id: number): Promise<EvSessionDetail> {
   const res = await apiFetch(`/api/mobile/ev-sessions/${id}`);
   if (!res.ok) throw new Error(`Failed to load session (${res.status})`);
   const json = await res.json() as { data: EvSessionDetail };
+  return json.data;
+}
+
+export async function fetchCampaigns(): Promise<Campaign[]> {
+  const res = await apiFetch('/api/mobile/ev-campaigns');
+  if (!res.ok) throw new Error(`Failed to load campaigns (${res.status})`);
+  const json = await res.json() as { data: Campaign[] };
+  return json.data;
+}
+
+export async function createSession(payload: CreateSessionPayload): Promise<EvSession> {
+  const res = await apiFetch('/api/mobile/ev-sessions', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as { message?: string; errors?: Record<string, string[]> };
+    throw new Error(body.message ?? `Failed to create session (${res.status})`);
+  }
+  const json = await res.json() as { data: EvSession };
   return json.data;
 }
 

@@ -63,51 +63,141 @@
         </div>
       </div>
     </div>
+
+    <!-- FAB -->
+    <f7-fab position="right-bottom" class="cp-fab" @click="openCreatePopup">
+      <f7-icon ios="f7:plus" md="material:add"></f7-icon>
+    </f7-fab>
+
+    <!-- Create session popup -->
+    <f7-popup
+      class="cp-create-session-popup"
+      :opened="createPopupOpen"
+      @popup:closed="createPopupOpen = false"
+    >
+      <f7-page>
+        <f7-navbar title="New Session">
+          <f7-nav-right>
+            <f7-link popup-close>Cancel</f7-link>
+          </f7-nav-right>
+        </f7-navbar>
+
+        <f7-page-content>
+          <f7-list strong inset>
+            <f7-list-input
+              label="Date"
+              type="date"
+              :value="form.date"
+              @change="form.date = ($event.target as HTMLInputElement).value"
+            >
+              <template #media>
+                <i class="f7-icons" style="font-size:18px">calendar</i>
+              </template>
+            </f7-list-input>
+
+            <f7-list-input
+              label="Location"
+              type="text"
+              placeholder="Where is the team going?"
+              :value="form.location"
+              @input="form.location = ($event.target as HTMLInputElement).value"
+            >
+              <template #media>
+                <i class="f7-icons" style="font-size:18px">map_pin_fill</i>
+              </template>
+            </f7-list-input>
+
+            <f7-list-input
+              label="Campaign (optional)"
+              type="select"
+              :value="form.campaign_id ?? ''"
+              @change="form.campaign_id = Number(($event.target as HTMLSelectElement).value) || null"
+            >
+              <template #media>
+                <i class="f7-icons" style="font-size:18px">megaphone_fill</i>
+              </template>
+              <option value="">Standalone – no campaign</option>
+              <option v-for="c in campaigns" :key="c.id" :value="c.id">{{ c.title }}</option>
+            </f7-list-input>
+
+            <f7-list-input
+              label="Team Size"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              :value="form.team_size"
+              @input="form.team_size = Math.max(1, Number(($event.target as HTMLInputElement).value))"
+            >
+              <template #media>
+                <i class="f7-icons" style="font-size:18px">person_2_fill</i>
+              </template>
+            </f7-list-input>
+
+            <f7-list-input
+              label="Notes"
+              type="textarea"
+              placeholder="Any additional notes…"
+              resizable
+              :value="form.notes"
+              @input="form.notes = ($event.target as HTMLTextAreaElement).value"
+            />
+          </f7-list>
+
+          <f7-block v-if="submitError">
+            <div class="cp-error" role="alert">
+              <i class="f7-icons">exclamationmark_circle_fill</i>
+              {{ submitError }}
+            </div>
+          </f7-block>
+
+          <f7-block>
+            <f7-button
+              large
+              fill
+              round
+              :disabled="submitting"
+              class="cp-submit-btn"
+              @click="submitCreate"
+            >
+              <span v-if="!submitting">Create Session</span>
+              <i v-else class="f7-icons cp-submit-spinner">arrow_2_circlepath</i>
+            </f7-button>
+          </f7-block>
+        </f7-page-content>
+      </f7-page>
+    </f7-popup>
+
   </f7-page>
 </template>
 
-<script lang="ts">
-import { ref, onMounted } from 'vue';
+<script setup lang="ts">
+import { onMounted } from 'vue';
 import { f7 } from 'framework7-vue';
-import { fetchSessions, type EvSession } from '../../ts/api/evangelism-sessions';
+import { useEvSessions } from './useEvSessions';
 
-export default {
-  name: 'EvSessionsPage',
+defineOptions({ name: 'EvSessionsPage' });
 
-  setup() {
-    const sessions = ref<EvSession[]>([]);
-    const loading = ref(false);
-    const error = ref('');
+    const { 
+      sessions,
+      loading,
+      error,
+      loadSessions,
+      submitCreate,
+      createPopupOpen,
+      submitting,
+      submitError,
+      form,
+      campaigns,
+      openCreatePopup,
+      openSession,
+      formatDay,
+      formatMonth,
+      onTabShow,
+    } = useEvSessions();
 
-    const loadSessions = async () => {
-      loading.value = true;
-      error.value = '';
-      try {
-        sessions.value = await fetchSessions();
-      } catch (err) {
-        error.value = err instanceof Error ? err.message : 'Failed to load sessions.';
-      } finally {
-        loading.value = false;
-      }
-    };
-
-    const openSession = (id: number) => {
-      f7.views.get('#view-ev-sessions')?.router.navigate(`/ev-sessions/${id}/`);
-    };
-
-    const formatDay = (dateStr: string) => {
-      return new Date(dateStr + 'T00:00:00').getDate().toString().padStart(2, '0');
-    };
-
-    const formatMonth = (dateStr: string) => {
-      return new Date(dateStr + 'T00:00:00').toLocaleString('en', { month: 'short' }).toUpperCase();
-    };
+    f7.on('tabShow', onTabShow);
 
     onMounted(loadSessions);
-
-    return { sessions, loading, error, loadSessions, openSession, formatDay, formatMonth };
-  },
-};
 </script>
 
 <style lang="scss">
@@ -177,6 +267,12 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 10px;
+  }
+
+  /* ── FAB ── */
+  .cp-fab {
+    --f7-fab-bg-color: var(--cp-purple);
+    --f7-fab-box-shadow: 0 6px 22px rgba(145, 132, 217, 0.5);
   }
 
   /* ── Session card ── */
@@ -301,4 +397,41 @@ export default {
     }
   }
 }
+/* ── Create session popup ── */
+.cp-create-session-popup {
+  --cp-purple: #9184D9;
+  --cp-purple-l: #6B5ABE;
+  --f7-theme-color: var(--cp-purple);
+
+  font-family: 'Outfit', -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Error callout ── */
+.cp-error {
+  display: flex !important;
+  align-items: center;
+  gap: 7px;
+  background: rgba(224, 122, 138, 0.1);
+  border: 1px solid rgba(224, 122, 138, 0.25);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #E07A8A;
+
+  i.f7-icons { font-size: 15px; flex-shrink: 0; }
+}
+
+/* ── Submit button ── */
+.cp-submit-btn.button {
+  background: linear-gradient(130deg, #A999EE 0%, #9184D9 55%, #7D6FC6 100%);
+  box-shadow: 0 5px 26px rgba(145, 132, 217, 0.38);
+}
+
+.cp-submit-spinner {
+  font-size: 22px !important;
+  animation: cpSessionSpin 0.72s linear infinite;
+}
+
+@keyframes cpSessionSpin { to { transform: rotate(360deg); } }
 </style>

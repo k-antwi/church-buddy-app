@@ -36,3 +36,19 @@
 
   &::before { display: none !important; }
 }
+
+.list input[type='text'], .list input[type='password'], .list input[type='search'], .list input[type='email'], .list input[type='tel'], .list input[type='url'], .list input[type='date'], .list input[type='month'], .list input[type='datetime-local'], .list input[type='time'], .list input[type='number'], .list select {
+  background-color: transparent;
+  border-bottom: 1px solid var(--m-border);
+  padding: 10px;
+}
+
+.list.media-list .item-content .item-inner {
+  padding: 0;
+}
+
+.list textarea {
+  resize: vertical;
+  background-color: transparent;
+  padding: 10px;
+}
