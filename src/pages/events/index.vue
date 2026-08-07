@@ -1,5 +1,8 @@
 <template>
-  <f7-page name="events" class="cp-events-page" @page:beforein="loadEvents">
+  <f7-page name="events" 
+  @page:beforein="loadEvents"
+  class="cp-events-page"
+  >
     <f7-navbar :sliding="false">
       <f7-nav-title sliding>Events</f7-nav-title>
       <f7-nav-right>
@@ -83,169 +86,35 @@
   </f7-page>
 </template>
 
-<script lang="ts">
-import { ref, computed, onMounted } from 'vue';
+<script setup lang="ts">
+import { onMounted } from 'vue';
 import { f7 } from 'framework7-vue';
-import { fetchEvents, type MobileEvent } from '../../ts/api/events';
+import { useChurchPanelEvents } from './useChurchPanelEvents';
 
-const DOW_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const DOW_NAMES = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+defineOptions({ name: 'EventsPage' });
 
-const ACCENT_COLORS: Record<number, string> = {
-  0: '#9184D9', // Sunday   → purple
-  1: '#6366F1', // Monday   → indigo
-  2: '#10B981', // Tuesday  → green
-  3: '#F59E0B', // Wednesday → amber
-  4: '#14B8A6', // Thursday  → teal
-  5: '#6366F1', // Friday   → indigo
-  6: '#9184D9', // Saturday → purple
-};
+const {
+  loading,
+  error,
+  weekDays,
+  monthLabel,
+  visibleEvents,
+  loadEvents,
+  shiftWeek,
+  selectDay,
+  isSelected,
+  isToday,
+  formatDow,
+  formatDate,
+  formatTime,
+  accentColor,
+  openEvent,
+  onTabShow,
+} = useChurchPanelEvents();
 
-function dateKey(d: Date): string {
-  return [
-    d.getFullYear(),
-    String(d.getMonth() + 1).padStart(2, '0'),
-    String(d.getDate()).padStart(2, '0'),
-  ].join('-');
-}
+f7.on('tabShow', onTabShow);
 
-function startOfWeek(d: Date): Date {
-  const copy = new Date(d);
-  copy.setDate(copy.getDate() - copy.getDay());
-  copy.setHours(0, 0, 0, 0);
-  return copy;
-}
-
-function sameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
-export default {
-  name: 'EventsPage',
-
-  setup() {
-    const events = ref<MobileEvent[]>([]);
-    const loading = ref(false);
-    const error = ref('');
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const weekStart = ref(startOfWeek(today));
-    const selectedDate = ref(new Date(today));
-
-    const weekDays = computed(() => {
-      return Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(weekStart.value);
-        d.setDate(d.getDate() + i);
-        return { dow: DOW_LABELS[d.getDay()], date: d.getDate(), full: d };
-      });
-    });
-
-    const monthLabel = computed(() => {
-      // Label based on the majority month in the week (Wed = index 3)
-      const mid = weekDays.value[3].full;
-      return mid.toLocaleString('en', { month: 'long', year: 'numeric' });
-    });
-
-    const weekEndKey = computed(() => {
-      const end = new Date(weekStart.value);
-      end.setDate(end.getDate() + 7);
-      return dateKey(end);
-    });
-
-    const visibleEvents = computed(() =>
-      events.value.filter(e => {
-        const d = e.start_datetime.slice(0, 10);
-        return d >= dateKey(weekStart.value) && d < weekEndKey.value;
-      }),
-    );
-
-    const isSelected = (day: { full: Date }) => sameDay(day.full, selectedDate.value);
-    const isToday = (day: { full: Date }) => sameDay(day.full, today);
-
-    const selectDay = (day: { full: Date }) => {
-      selectedDate.value = new Date(day.full);
-    };
-
-    const weekRangeParams = () => {
-      const from = dateKey(weekStart.value);
-      const end = new Date(weekStart.value);
-      end.setDate(end.getDate() + 6);
-      const to = dateKey(end);
-      return { from, to };
-    };
-
-    const shiftWeek = (direction: number) => {
-      const next = new Date(weekStart.value);
-      next.setDate(next.getDate() + direction * 7);
-      weekStart.value = next;
-      loadEvents();
-    };
-
-    const loadEvents = async () => {
-      if (loading.value) return;
-      loading.value = true;
-      error.value = '';
-      try {
-        const { from, to } = weekRangeParams();
-        events.value = await fetchEvents(from, to);
-      } catch (err) {
-        error.value = err instanceof Error ? err.message : 'Failed to load events.';
-      } finally {
-        loading.value = false;
-      }
-    };
-
-    const formatDow = (iso: string) => {
-      const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
-      return DOW_NAMES[new Date(y, m - 1, d).getDay()];
-    };
-
-    const formatDate = (iso: string) => String(parseInt(iso.slice(8, 10), 10));
-
-    const formatTime = (iso: string) => {
-      return new Date(iso).toLocaleTimeString('en', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
-    };
-
-    const accentColor = (event: MobileEvent) => {
-      const dow = new Date(event.start_datetime).getDay();
-      return ACCENT_COLORS[dow] ?? '#9184D9';
-    };
-
-    const openEvent = (id: number) => {
-      f7.views.get('#view-events')?.router.navigate(`/events/${id}/`);
-    };
-
-    onMounted(loadEvents);
-
-    return {
-      loading,
-      error,
-      weekDays,
-      monthLabel,
-      visibleEvents,
-      isSelected,
-      isToday,
-      selectDay,
-      shiftWeek,
-      loadEvents,
-      formatDow,
-      formatDate,
-      formatTime,
-      accentColor,
-      openEvent,
-    };
-  },
-};
+onMounted(loadEvents);
 </script>
 
 <style lang="scss">
