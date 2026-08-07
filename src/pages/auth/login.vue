@@ -180,8 +180,9 @@
 <script lang="ts">
 import { ref, computed, nextTick } from 'vue';
 import { f7 } from 'framework7-vue';
-import { login, resolveDomain } from '../../ts/auth';
+import { login, resolveDomain, storeUser } from '../../ts/auth';
 import { authState } from '../../ts/auth-state';
+import { fetchProfile } from '../../ts/api/profile';
 
 export default {
   name: 'LoginPage',
@@ -249,6 +250,9 @@ const loading  = ref(false);
 
       try {
         await login(email.value.trim(), password.value, tenant.value || undefined);
+        // Pre-fetch and cache the user profile so it's available immediately
+        // when any page reads getStoredUser() — don't block navigation on it.
+        fetchProfile().then(storeUser).catch(() => {});
         authState.loggedIn = true;
         f7.views.main.router.navigate('/home/', { clearPreviousHistory: true });
       } catch (err) {

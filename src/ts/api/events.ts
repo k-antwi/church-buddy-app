@@ -30,8 +30,12 @@ export interface MobileEventDetail extends MobileEvent {
   attendances: MobileAttendance[];
 }
 
-export async function fetchEvents(): Promise<MobileEvent[]> {
-  const res = await apiFetch('/api/mobile/events');
+export async function fetchEvents(from?: string, to?: string): Promise<MobileEvent[]> {
+  const params = new URLSearchParams();
+  if (from) params.set('from', from);
+  if (to) params.set('to', to);
+  const query = params.toString() ? `?${params.toString()}` : '';
+  const res = await apiFetch(`/api/mobile/events${query}`);
   if (!res.ok) throw new Error(`Failed to load events (${res.status})`);
   const json = await res.json() as { data: MobileEvent[] };
   return json.data;

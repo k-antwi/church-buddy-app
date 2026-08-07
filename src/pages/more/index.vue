@@ -23,7 +23,7 @@
       <div class="cp-more-section">
         <span class="cp-section-label">ACCOUNT</span>
         <div class="cp-menu-list">
-          <button class="cp-menu-item" type="button" @click="startEdit">
+          <button class="cp-menu-item" type="button" :disabled="loadingProfile && !user" @click="startEdit">
             <span class="cp-menu-item__icon cp-menu-item__icon--purple">
               <i class="f7-icons">person_fill</i>
             </span>
@@ -78,11 +78,12 @@
     <f7-page no-navbar>
       <div class="cp-edit-popup-inner">
 
+        <button class="cp-edit-close" type="button" @click="cancelEdit">
+          <i class="f7-icons">xmark_circle_fill</i>
+        </button>
+
         <div class="cp-edit-header">
           <span class="cp-edit-title">Edit<br>Profile</span>
-          <button class="cp-edit-close" type="button" @click="cancelEdit">
-            <i class="f7-icons">xmark_circle_fill</i>
-          </button>
         </div>
 
         <form class="cp-edit-form" @submit.prevent="saveProfile">
@@ -713,20 +714,14 @@ export default {
   .page { --f7-page-bg-color: var(--cp-bg); }
 
   .cp-edit-popup-inner {
+    position: relative;
     padding: 28px 20px 32px;
     display: flex;
     flex-direction: column;
     gap: 16px;
   }
 
-  .cp-edit-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-
   .cp-edit-title {
-    flex: 1;
     font-size: 22px;
     font-weight: 800;
     color: var(--cp-text);
@@ -735,6 +730,9 @@ export default {
   }
 
   .cp-edit-close {
+    position: absolute;
+    top: 28px;
+    right: 20px;
     background: none;
     border: none;
     padding: 0;

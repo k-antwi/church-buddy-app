@@ -122,11 +122,22 @@ export async function login(
 
 // ── Logout ────────────────────────────────────────────────────────────────────
 
+function clearCookies(): void {
+  document.cookie.split(';').forEach(cookie => {
+    const name = cookie.split('=')[0].trim();
+    // Expire the cookie on both the current path and the root path.
+    const base = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+    document.cookie = base;
+    document.cookie = `${base}; domain=${location.hostname}`;
+  });
+}
+
 export function logout(): void {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(EXPIRES_KEY);
   localStorage.removeItem(TENANT_KEY);
   localStorage.removeItem(USER_KEY);
+  clearCookies();
   cancelSchedule();
 }
 

@@ -172,10 +172,19 @@ export default {
       selectedDate.value = new Date(day.full);
     };
 
+    const weekRangeParams = () => {
+      const from = dateKey(weekStart.value);
+      const end = new Date(weekStart.value);
+      end.setDate(end.getDate() + 6);
+      const to = dateKey(end);
+      return { from, to };
+    };
+
     const shiftWeek = (direction: number) => {
       const next = new Date(weekStart.value);
       next.setDate(next.getDate() + direction * 7);
       weekStart.value = next;
+      loadEvents();
     };
 
     const loadEvents = async () => {
@@ -183,7 +192,8 @@ export default {
       loading.value = true;
       error.value = '';
       try {
-        events.value = await fetchEvents();
+        const { from, to } = weekRangeParams();
+        events.value = await fetchEvents(from, to);
       } catch (err) {
         error.value = err instanceof Error ? err.message : 'Failed to load events.';
       } finally {

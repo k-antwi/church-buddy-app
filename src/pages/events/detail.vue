@@ -1,9 +1,7 @@
 <template>
   <f7-page name="event-detail" class="cp-event-detail-page" @page:beforein="loadDetail">
 
-    <f7-navbar :sliding="false" back-link="Back">
-      <f7-nav-title sliding>{{ event?.title ?? 'Event' }}</f7-nav-title>
-    </f7-navbar>
+    <f7-navbar :title="event?.title ?? 'Event'" back-link="Back" />
 
     <!-- Loading -->
     <div v-if="loading" class="cp-state cp-state--loading">
