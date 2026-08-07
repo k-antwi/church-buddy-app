@@ -171,8 +171,8 @@
 
       <!-- Tab: Roll Call -->
       <div v-show="activeTab === 'expecting'" class="cp-tab-content">
-        <!-- Generate button — visible from the day before the event until end of event day -->
-        <div v-if="isCheckinWindowOpen" class="cp-generate-bar">
+        <!-- Generate button — requires update_events; visible from the day before the event until end of event day -->
+        <div v-if="isCheckinWindowOpen && canUpdateEvents" class="cp-generate-bar">
           <button class="cp-generate-btn" :disabled="generating" @click="handleGenerateCheckinList">
             <template v-if="generating">
               <span class="cp-generate-btn__spinner"></span>
@@ -233,40 +233,45 @@
                 </div>
               </div>
               <div class="cp-checkin-card__action">
-                <button
-                  v-if="attendance.attendance_status === 'present'"
-                  class="cp-child-btn"
-                  :class="{ 'cp-child-btn--active': attendance.is_child }"
-                  :disabled="togglingChildId === attendance.id || togglingId === attendance.id || togglingFirstTimerId === attendance.id"
-                  :title="attendance.is_child ? 'Mark as adult' : 'Mark as child'"
-                  @click.stop="toggleIsChild(attendance)"
-                >
-                  <span v-if="togglingChildId === attendance.id" class="cp-toggle-btn__spinner"></span>
-                  <i v-else class="f7-icons">person_crop_circle_fill</i>
-                </button>
-                <button
-                  v-if="attendance.attendance_status === 'present'"
-                  class="cp-first-timer-btn"
-                  :class="{ 'cp-first-timer-btn--active': attendance.first_time_visitor }"
-                  :disabled="togglingFirstTimerId === attendance.id || togglingId === attendance.id || togglingChildId === attendance.id"
-                  :title="attendance.first_time_visitor ? 'Remove first-timer' : 'Mark as first-timer'"
-                  @click.stop="toggleFirstTimer(attendance)"
-                >
-                  <span v-if="togglingFirstTimerId === attendance.id" class="cp-toggle-btn__spinner"></span>
-                  <i v-else class="f7-icons">star_fill</i>
-                </button>
-                <button
-                  class="cp-toggle-btn"
-                  :class="attendance.attendance_status === 'present' ? 'cp-toggle-btn--present' : 'cp-toggle-btn--absent'"
-                  :disabled="togglingId === attendance.id || togglingChildId === attendance.id || togglingFirstTimerId === attendance.id"
-                  @click.stop="toggleAttendance(attendance)"
-                >
-                  <span v-if="togglingId === attendance.id" class="cp-toggle-btn__spinner"></span>
-                  <template v-else>
-                    <i class="f7-icons">{{ attendance.attendance_status === 'present' ? 'checkmark_circle_fill' : 'circle' }}</i>
-                    {{ attendance.attendance_status === 'present' ? 'Present' : 'Absent' }}
-                  </template>
-                </button>
+                <template v-if="canUpdateEvents">
+                  <button
+                    v-if="attendance.attendance_status === 'present'"
+                    class="cp-child-btn"
+                    :class="{ 'cp-child-btn--active': attendance.is_child }"
+                    :disabled="togglingChildId === attendance.id || togglingId === attendance.id || togglingFirstTimerId === attendance.id"
+                    :title="attendance.is_child ? 'Mark as adult' : 'Mark as child'"
+                    @click.stop="toggleIsChild(attendance)"
+                  >
+                    <span v-if="togglingChildId === attendance.id" class="cp-toggle-btn__spinner"></span>
+                    <i v-else class="f7-icons">person_crop_circle_fill</i>
+                  </button>
+                  <button
+                    v-if="attendance.attendance_status === 'present'"
+                    class="cp-first-timer-btn"
+                    :class="{ 'cp-first-timer-btn--active': attendance.first_time_visitor }"
+                    :disabled="togglingFirstTimerId === attendance.id || togglingId === attendance.id || togglingChildId === attendance.id"
+                    :title="attendance.first_time_visitor ? 'Remove first-timer' : 'Mark as first-timer'"
+                    @click.stop="toggleFirstTimer(attendance)"
+                  >
+                    <span v-if="togglingFirstTimerId === attendance.id" class="cp-toggle-btn__spinner"></span>
+                    <i v-else class="f7-icons">star_fill</i>
+                  </button>
+                  <button
+                    class="cp-toggle-btn"
+                    :class="attendance.attendance_status === 'present' ? 'cp-toggle-btn--present' : 'cp-toggle-btn--absent'"
+                    :disabled="togglingId === attendance.id || togglingChildId === attendance.id || togglingFirstTimerId === attendance.id"
+                    @click.stop="toggleAttendance(attendance)"
+                  >
+                    <span v-if="togglingId === attendance.id" class="cp-toggle-btn__spinner"></span>
+                    <template v-else>
+                      <i class="f7-icons">{{ attendance.attendance_status === 'present' ? 'checkmark_circle_fill' : 'circle' }}</i>
+                      {{ attendance.attendance_status === 'present' ? 'Present' : 'Absent' }}
+                    </template>
+                  </button>
+                </template>
+                <span v-else class="cp-attendance-badge" :class="`cp-attendance--${attendance.attendance_status}`">
+                  {{ attendance.attendance_status === 'present' ? 'Present' : 'Absent' }}
+                </span>
               </div>
             </div>
           </div>
@@ -288,6 +293,7 @@ import {
   type MobileEventDetail,
   type MobileAttendance,
 } from '../../ts/api/events';
+import { can } from '../../ts/rbac';
 
 const ACCENT_COLORS: Record<number, string> = {
   0: '#9184D9',
@@ -307,6 +313,8 @@ export default {
   },
 
   setup(props) {
+    const canUpdateEvents = computed(() => can('update_events'));
+
     const eventId = Number(props.f7route.params.id);
     const event = ref<MobileEventDetail | null>(null);
     const loading = ref(false);
@@ -557,6 +565,7 @@ export default {
     onMounted(loadDetail);
 
     return {
+      canUpdateEvents,
       event,
       loading,
       refreshing,

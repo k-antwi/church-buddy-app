@@ -64,8 +64,8 @@
       </div>
     </div>
 
-    <!-- FAB -->
-    <f7-fab position="right-bottom" class="cp-fab" @click="openCreatePopup">
+    <!-- FAB — only users with create_campaigns permission may start new sessions -->
+    <f7-fab v-if="canCreateCampaigns" position="right-bottom" class="cp-fab" @click="openCreatePopup">
       <f7-icon ios="f7:plus" md="material:add"></f7-icon>
     </f7-fab>
 
@@ -171,9 +171,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { computed, onMounted } from 'vue';
 import { f7 } from 'framework7-vue';
 import { useEvSessions } from './useEvSessions';
+import { can } from '../../ts/rbac';
+
+const canCreateCampaigns = computed(() => can('create_campaigns'));
 
 defineOptions({ name: 'EvSessionsPage' });
 

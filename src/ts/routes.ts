@@ -17,6 +17,9 @@ import EvSessionsPage from '../pages/ev-sessions/index.vue';
 import EvSessionDetailPage from '../pages/ev-sessions/session-detail.vue';
 import MorePage from '../pages/more/index.vue';
 
+import { isAuthenticated } from './auth';
+import { can, hasAnyPermission } from './rbac';
+
 interface RouteUser {
   firstName: string;
   lastName: string;
@@ -30,6 +33,58 @@ interface RouteParams {
   resolve: (component: object, options?: object) => void;
 }
 
+// ── Guards ────────────────────────────────────────────────────────────────────
+
+/**
+ * Requires the user to be authenticated.
+ * Redirects to the login screen (main view `/`) on failure.
+ * Uses a regular function so Framework7 sets `this` to the router instance.
+ */
+function requireAuth(
+  this: any,
+  _to: unknown,
+  _from: unknown,
+  resolve: () => void,
+  reject: () => void,
+): void {
+  if (isAuthenticated()) {
+    resolve();
+  } else {
+    reject();
+    this.navigate('/', { reloadCurrent: true });
+  }
+}
+
+/**
+ * Returns a guard that requires at least one of the given permissions.
+ * Falls back to the home dashboard if the user lacks all of them.
+ */
+function requireAnyPermission(permissions: string[]) {
+  return function(
+    this: any,
+    _to: unknown,
+    _from: unknown,
+    resolve: () => void,
+    reject: () => void,
+  ): void {
+    if (!isAuthenticated()) {
+      reject();
+      this.navigate('/', { reloadCurrent: true });
+      return;
+    }
+    if (hasAnyPermission(permissions)) {
+      resolve();
+    } else {
+      reject();
+      // Navigate the main view to home — this guard fires in a tab view router,
+      // so we activate the home tab rather than pushing into the current tab.
+      this.app?.tab?.show?.('#view-home');
+    }
+  };
+}
+
+// ── Routes ───────────────────────────────────────────────────────────────────
+
 const routes = [
   {
     path: '/',
@@ -38,6 +93,7 @@ const routes = [
   {
     path: '/home/',
     component: HomeDashboardPage,
+    beforeEnter: [requireAuth],
   },
   {
     path: '/register/',
@@ -70,26 +126,32 @@ const routes = [
   {
     path: '/people/',
     component: PeoplePage,
+    beforeEnter: [requireAnyPermission(['view_people', 'view_contacts'])],
   },
   {
     path: '/events/',
     component: EventsPage,
+    beforeEnter: [requireAnyPermission(['view_events'])],
   },
   {
     path: '/events/:id/',
     component: EventDetailPage,
+    beforeEnter: [requireAnyPermission(['view_events'])],
   },
   {
     path: '/ev-sessions/',
     component: EvSessionsPage,
+    beforeEnter: [requireAnyPermission(['view_campaigns'])],
   },
   {
     path: '/ev-sessions/:id/',
     component: EvSessionDetailPage,
+    beforeEnter: [requireAnyPermission(['view_campaigns'])],
   },
   {
     path: '/more/',
     component: MorePage,
+    beforeEnter: [requireAuth],
   },
   {
     path: '/demo/dynamic-route/blog/:blogId/post/:postId/',

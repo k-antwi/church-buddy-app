@@ -11,6 +11,8 @@ export interface AuthUser {
   name: string;
   email: string;
   username: string;
+  roles: string[];
+  permissions: string[];
 }
 
 // ── Tenant ────────────────────────────────────────────────────────────────────
@@ -116,8 +118,25 @@ export async function login(
   // Persist tenant BEFORE storing the token so getApiBase() is correct on first use.
   setTenantDomain(tenantDomain ?? null);
   storeToken(data);
-  if (data.user) storeUser(data.user);
   scheduleRefresh();
+
+  // Always fetch the full profile (with roles/permissions) from /api/mobile/me.
+  // The login response user object lacks RBAC fields, so we discard it.
+  await fetchUserProfile();
+  // Sync reactive RBAC state so guards and UI update immediately.
+  (await import('./auth-state')).syncAuthState();
+}
+
+/**
+ * Fetches the authenticated user's full profile (including roles and permissions)
+ * from /api/mobile/me and persists it to localStorage.
+ * Safe to call any time the user is authenticated.
+ */
+export async function fetchUserProfile(): Promise<void> {
+  const res = await apiFetch('/api/mobile/me');
+  if (!res.ok) return;
+  const body = await res.json() as { data: AuthUser };
+  storeUser(body.data);
 }
 
 // ── Logout ────────────────────────────────────────────────────────────────────

@@ -30,9 +30,27 @@
     <f7-toolbar v-show="authState.loggedIn" tabbar icons bottom>
       <f7-toolbar-pane>
         <f7-link tab-link="#view-home" tab-link-active icon-ios="f7:house_fill" icon-md="material:home" text="Home"></f7-link>
-        <f7-link tab-link="#view-people" icon-ios="f7:person_2_fill" icon-md="material:people" text="People"></f7-link>
-        <f7-link tab-link="#view-events" icon-ios="f7:calendar" icon-md="material:calendar_today" text="Events"></f7-link>
-        <f7-link tab-link="#view-ev-sessions" icon-ios="f7:megaphone_fill" icon-md="material:campaign" text="EvSessions"></f7-link>
+        <f7-link
+          v-if="canSeePeople"
+          tab-link="#view-people"
+          icon-ios="f7:person_2_fill"
+          icon-md="material:people"
+          text="People"
+        ></f7-link>
+        <f7-link
+          v-if="canSeeEvents"
+          tab-link="#view-events"
+          icon-ios="f7:calendar"
+          icon-md="material:calendar_today"
+          text="Events"
+        ></f7-link>
+        <f7-link
+          v-if="canSeeEvSessions"
+          tab-link="#view-ev-sessions"
+          icon-ios="f7:megaphone_fill"
+          icon-md="material:campaign"
+          text="EvSessions"
+        ></f7-link>
         <f7-link tab-link="#view-more" icon-ios="f7:line_horizontal_3" icon-md="material:more_horiz" text="More"></f7-link>
       </f7-toolbar-pane>
     </f7-toolbar>
@@ -102,7 +120,7 @@
   </k-provider>
 </template>
 <script lang="ts">
-  import { ref, onMounted } from 'vue';
+  import { ref, computed, onMounted } from 'vue';
   import { f7, f7ready } from 'framework7-vue';
   import { kProvider } from 'konsta/vue';
 
@@ -110,6 +128,7 @@
   import store from '../ts/store';
   import { isAuthenticated } from '../ts/auth';
   import { authState } from '../ts/auth-state';
+  import { hasAnyPermission } from '../ts/rbac';
 
   export default {
     components: { kProvider },
@@ -126,6 +145,10 @@
 
       const username = ref('');
       const password = ref('');
+
+      const canSeePeople     = computed(() => hasAnyPermission(['view_people', 'view_contacts']));
+      const canSeeEvents     = computed(() => hasAnyPermission(['view_events']));
+      const canSeeEvSessions = computed(() => hasAnyPermission(['view_campaigns']));
 
       const alertLoginData = (): void => {
         f7.dialog.alert('Username: ' + username.value + '<br>Password: ' + password.value, () => {
@@ -147,6 +170,9 @@
         password,
         alertLoginData,
         authState,
+        canSeePeople,
+        canSeeEvents,
+        canSeeEvSessions,
       };
     },
   };

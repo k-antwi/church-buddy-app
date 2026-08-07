@@ -69,9 +69,9 @@
           @touchmove="onSwipeTouchMove($event, contact.id, !!contact.phone)"
           @touchend="onSwipeTouchEnd($event, contact.id, !!contact.phone)"
         >
-          <!-- Call action (revealed on left-swipe) -->
+          <!-- Call action (revealed on left-swipe) — requires create_follow_ups to log the call -->
           <button
-            v-if="contact.phone"
+            v-if="contact.phone && canCreateFollowUps"
             class="cp-swipe-call-btn"
             @click.stop="callContact(contact)"
           >
@@ -112,8 +112,8 @@
       </div>
     </template>
 
-    <!-- FAB -->
-    <f7-fab position="right-bottom" @click="openCapturePopup" class="cp-fab">
+    <!-- FAB — only users with create_contacts permission may capture contacts -->
+    <f7-fab v-if="canCreateContacts" position="right-bottom" @click="openCapturePopup" class="cp-fab">
       <f7-icon ios="f7:plus" md="material:add"></f7-icon>
     </f7-fab>
 
@@ -312,7 +312,7 @@
 </template>
 
 <script lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, computed, reactive, onMounted } from 'vue';
 import {
   fetchSession,
   captureContact,
@@ -321,6 +321,7 @@ import {
   type EvContact,
 } from '../../ts/api/evangelism-sessions';
 import { logCall } from '../../ts/api/follow-ups';
+import { can } from '../../ts/rbac';
 
 export default {
   name: 'EvSessionDetailPage',
@@ -330,6 +331,9 @@ export default {
   },
 
   setup(props) {
+    const canCreateContacts   = computed(() => can('create_contacts'));
+    const canCreateFollowUps  = computed(() => can('create_follow_ups'));
+
     const sessionId = Number(props.f7route.params.id);
     const session = ref<EvSessionDetail | null>(null);
     const loading = ref(false);
@@ -539,6 +543,8 @@ export default {
     onMounted(loadDetail);
 
     return {
+      canCreateContacts,
+      canCreateFollowUps,
       session,
       loading,
       error,
