@@ -94,6 +94,10 @@ Routes are defined in `routes.ts` and map to page components.
 - **NotificationService**: Uses Capacitor Local Notifications for native push.
 - **PushNotificationService**: Web Push with VAPID keys for PWA.
 
+## Business Logic Handling
+
+- maintain container/presentation pattern for all components - all business logic must be contained in composables and presented by the components
+
 ### AI — Google Gemini
 
 ---
