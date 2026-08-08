@@ -1,5 +1,6 @@
 import { ref, reactive } from 'vue';
 import { f7 } from 'framework7-vue';
+import { isAuthenticated } from '../../ts/auth';
 import {
   fetchSessions,
   fetchCampaigns,
@@ -45,6 +46,7 @@ export function useEvSessions() {
   };
 
   const loadSessions = async () => {
+    if (!isAuthenticated()) return;
     loading.value = true;
     error.value = '';
     try {

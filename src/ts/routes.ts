@@ -135,12 +135,12 @@ const routes = [
   {
     path: '/ev-sessions/',
     component: EvSessionsPage,
-    beforeEnter: [requireAnyPermission(['view_campaigns'])],
+    beforeEnter: [requireAnyPermission(['view_campaigns', 'view_any_evangelism-sessions', 'view_evangelism-sessions'])],
   },
   {
     path: '/ev-sessions/:id/',
     component: EvSessionDetailPage,
-    beforeEnter: [requireAnyPermission(['view_campaigns'])],
+    beforeEnter: [requireAnyPermission(['view_campaigns', 'view_any_evangelism-sessions', 'view_evangelism-sessions'])],
   },
   {
     path: '/more/',

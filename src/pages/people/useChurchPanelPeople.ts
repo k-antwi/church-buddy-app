@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue';
+import { isAuthenticated } from '../../ts/auth';
 import { fetchPeople, fetchContacts, type MobilePerson, type MobileContact } from '../../ts/api/people';
 import { fetchEvContacts, type MobileEvContact } from '../../ts/api/evangelism-sessions';
 
@@ -195,6 +196,7 @@ export function useChurchPanelPeople() {
   }
 
   async function loadAll(): Promise<void> {
+    if (!isAuthenticated()) return;
     loading.value = true;
     error.value = '';
     try {

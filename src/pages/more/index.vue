@@ -165,7 +165,7 @@
 <script lang="ts">
 import { computed, ref, reactive } from 'vue';
 import { f7 } from 'framework7-vue';
-import { getStoredUser, storeUser, apiLogout, type AuthUser } from '../../ts/auth';
+import { getStoredUser, storeUser, apiLogout, isAuthenticated, type AuthUser } from '../../ts/auth';
 import { authState } from '../../ts/auth-state';
 import { fetchProfile, updateProfile } from '../../ts/api/profile';
 
@@ -207,6 +207,10 @@ export default {
     const fieldError = (key: string) => errors.value[key] ?? '';
 
     async function loadProfile(): Promise<void> {
+      if (!isAuthenticated()) {
+        loadingProfile.value = false;
+        return;
+      }
       try {
         const fresh = await fetchProfile();
         user.value = fresh;

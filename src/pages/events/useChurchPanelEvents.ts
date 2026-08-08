@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue';
 import { f7 } from 'framework7-vue';
+import { isAuthenticated } from '../../ts/auth';
 import { fetchEvents, type MobileEvent } from '../../ts/api/events';
 
 const DOW_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -83,7 +84,7 @@ export function useChurchPanelEvents() {
   };
 
   const loadEvents = async () => {
-    if (loading.value) return;
+    if (loading.value || !isAuthenticated()) return;
     loading.value = true;
     error.value = '';
     try {
