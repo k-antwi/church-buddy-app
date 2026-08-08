@@ -147,8 +147,8 @@
       const password = ref('');
 
       const canSeePeople     = computed(() => hasAnyPermission(['view_people', 'view_contacts']));
-      const canSeeEvents     = computed(() => hasAnyPermission(['view_events']));
-      const canSeeEvSessions = computed(() => hasAnyPermission(['view_campaigns']));
+      const canSeeEvents     = computed(() => hasAnyPermission(['view_events', 'view_any_events', 'create_events', 'update_events']));
+      const canSeeEvSessions = computed(() => hasAnyPermission(['view_evangelism-sessions', 'view_any_evangelism-sessions', 'create_evangelism-sessions', 'update_evangelism-sessions']));
 
       const alertLoginData = (): void => {
         f7.dialog.alert('Username: ' + username.value + '<br>Password: ' + password.value, () => {
