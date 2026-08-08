@@ -62,18 +62,37 @@
           <div
             v-for="(item, idx) in allItems"
             :key="item.uid"
-            class="cp-person"
-            :class="{ 'cp-person--last': idx === allItems.length - 1 }"
+            class="cp-swipeable-wrapper"
+            @touchstart="onSwipeTouchStart($event, item.uid, !!item.phone)"
+            @touchmove="onSwipeTouchMove($event, item.uid, !!item.phone)"
+            @touchend="onSwipeTouchEnd($event, item.uid, !!item.phone)"
           >
-            <div class="cp-avatar" :style="{ background: avatarColor(item.first_name, item.last_name) }">
-              {{ initials(item.first_name, item.last_name) }}
+            <div v-if="item.phone" class="cp-swipe-actions">
+              <button class="cp-swipe-action-btn cp-swipe-action-btn--call" @click.stop="callPerson(item.phone, item.uid)">
+                <i class="f7-icons">phone_fill</i>
+                <span>Call</span>
+              </button>
+              <button class="cp-swipe-action-btn cp-swipe-action-btn--text" @click.stop="textPerson(item.phone, item.uid)">
+                <i class="f7-icons">chat_bubble_fill</i>
+                <span>Text</span>
+              </button>
             </div>
-            <div class="cp-person-info">
-              <span class="cp-person-name">{{ item.first_name }} {{ item.last_name }}</span>
-              <span class="cp-person-sub">{{ item.sub }}</span>
-            </div>
-            <div class="cp-person-end">
-              <span :class="['cp-kind-badge', `cp-kind-badge--${item.kind}`]">{{ kindLabel(item.kind) }}</span>
+            <div
+              class="cp-person"
+              :class="{ 'cp-person--last': idx === allItems.length - 1 }"
+              :style="swipeCardStyle(item.uid)"
+              @click="closeSwipe(item.uid)"
+            >
+              <div class="cp-avatar" :style="{ background: avatarColor(item.first_name, item.last_name) }">
+                {{ initials(item.first_name, item.last_name) }}
+              </div>
+              <div class="cp-person-info">
+                <span class="cp-person-name">{{ item.first_name }} {{ item.last_name }}</span>
+                <span class="cp-person-sub">{{ item.sub }}</span>
+              </div>
+              <div class="cp-person-end">
+                <span :class="['cp-kind-badge', `cp-kind-badge--${item.kind}`]">{{ kindLabel(item.kind) }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -113,21 +132,40 @@
           <div
             v-for="(contact, idx) in filteredContacts"
             :key="contact.id"
-            class="cp-person"
-            :class="{ 'cp-person--last': idx === filteredContacts.length - 1 }"
+            class="cp-swipeable-wrapper"
+            @touchstart="onSwipeTouchStart($event, `c-${contact.id}`, !!contact.mobile)"
+            @touchmove="onSwipeTouchMove($event, `c-${contact.id}`, !!contact.mobile)"
+            @touchend="onSwipeTouchEnd($event, `c-${contact.id}`, !!contact.mobile)"
           >
-            <div class="cp-avatar" :style="{ background: avatarColor(contact.first_name, contact.last_name) }">
-              {{ initials(contact.first_name, contact.last_name) }}
+            <div v-if="contact.mobile" class="cp-swipe-actions">
+              <button class="cp-swipe-action-btn cp-swipe-action-btn--call" @click.stop="callPerson(contact.mobile, `c-${contact.id}`)">
+                <i class="f7-icons">phone_fill</i>
+                <span>Call</span>
+              </button>
+              <button class="cp-swipe-action-btn cp-swipe-action-btn--text" @click.stop="textPerson(contact.mobile, `c-${contact.id}`)">
+                <i class="f7-icons">chat_bubble_fill</i>
+                <span>Text</span>
+              </button>
             </div>
-            <div class="cp-person-info">
-              <span class="cp-person-name">{{ contact.first_name }} {{ contact.last_name }}</span>
-              <span class="cp-person-sub">{{ contact.branch?.name ?? contact.contact_source ?? 'Contact' }}</span>
-            </div>
-            <div class="cp-person-end">
-              <span v-if="contact.stage" :class="['cp-badge', `cp-badge--stage-${contact.stage}`]">
-                {{ stageLabel(contact.stage) }}
-              </span>
-              <i v-else class="f7-icons cp-chevron">chevron_right</i>
+            <div
+              class="cp-person"
+              :class="{ 'cp-person--last': idx === filteredContacts.length - 1 }"
+              :style="swipeCardStyle(`c-${contact.id}`)"
+              @click="closeSwipe(`c-${contact.id}`)"
+            >
+              <div class="cp-avatar" :style="{ background: avatarColor(contact.first_name, contact.last_name) }">
+                {{ initials(contact.first_name, contact.last_name) }}
+              </div>
+              <div class="cp-person-info">
+                <span class="cp-person-name">{{ contact.first_name }} {{ contact.last_name }}</span>
+                <span class="cp-person-sub">{{ contact.branch?.name ?? contact.contact_source ?? 'Contact' }}</span>
+              </div>
+              <div class="cp-person-end">
+                <span v-if="contact.stage" :class="['cp-badge', `cp-badge--stage-${contact.stage}`]">
+                  {{ stageLabel(contact.stage) }}
+                </span>
+                <i v-else class="f7-icons cp-chevron">chevron_right</i>
+              </div>
             </div>
           </div>
         </div>
@@ -140,21 +178,40 @@
           <div
             v-for="(ec, idx) in filteredEvContacts"
             :key="ec.id"
-            class="cp-person"
-            :class="{ 'cp-person--last': idx === filteredEvContacts.length - 1 }"
+            class="cp-swipeable-wrapper"
+            @touchstart="onSwipeTouchStart($event, `ev-${ec.id}`, !!ec.phone)"
+            @touchmove="onSwipeTouchMove($event, `ev-${ec.id}`, !!ec.phone)"
+            @touchend="onSwipeTouchEnd($event, `ev-${ec.id}`, !!ec.phone)"
           >
-            <div class="cp-avatar" :style="{ background: avatarColor(ec.first_name, ec.last_name) }">
-              {{ initials(ec.first_name, ec.last_name) }}
+            <div v-if="ec.phone" class="cp-swipe-actions">
+              <button class="cp-swipe-action-btn cp-swipe-action-btn--call" @click.stop="callPerson(ec.phone, `ev-${ec.id}`)">
+                <i class="f7-icons">phone_fill</i>
+                <span>Call</span>
+              </button>
+              <button class="cp-swipe-action-btn cp-swipe-action-btn--text" @click.stop="textPerson(ec.phone, `ev-${ec.id}`)">
+                <i class="f7-icons">chat_bubble_fill</i>
+                <span>Text</span>
+              </button>
             </div>
-            <div class="cp-person-info">
-              <span class="cp-person-name">{{ ec.first_name }} {{ ec.last_name }}</span>
-              <span class="cp-person-sub">{{ ec.session?.location ?? 'Evangelism' }}</span>
-            </div>
-            <div class="cp-person-end">
-              <span v-if="ec.outcome" :class="['cp-badge', `cp-badge--outcome-${ec.outcome}`]">
-                {{ outcomeLabel(ec.outcome) }}
-              </span>
-              <i v-else class="f7-icons cp-chevron">chevron_right</i>
+            <div
+              class="cp-person"
+              :class="{ 'cp-person--last': idx === filteredEvContacts.length - 1 }"
+              :style="swipeCardStyle(`ev-${ec.id}`)"
+              @click="closeSwipe(`ev-${ec.id}`)"
+            >
+              <div class="cp-avatar" :style="{ background: avatarColor(ec.first_name, ec.last_name) }">
+                {{ initials(ec.first_name, ec.last_name) }}
+              </div>
+              <div class="cp-person-info">
+                <span class="cp-person-name">{{ ec.first_name }} {{ ec.last_name }}</span>
+                <span class="cp-person-sub">{{ ec.session?.location ?? 'Evangelism' }}</span>
+              </div>
+              <div class="cp-person-end">
+                <span v-if="ec.outcome" :class="['cp-badge', `cp-badge--outcome-${ec.outcome}`]">
+                  {{ outcomeLabel(ec.outcome) }}
+                </span>
+                <i v-else class="f7-icons cp-chevron">chevron_right</i>
+              </div>
             </div>
           </div>
         </div>
@@ -190,6 +247,13 @@ const {
   loadAll,
   clearQuery,
   onTabShow,
+  swipeCardStyle,
+  onSwipeTouchStart,
+  onSwipeTouchMove,
+  onSwipeTouchEnd,
+  closeSwipe,
+  callPerson,
+  textPerson,
 } = useChurchPanelPeople();
 
 f7.on('tabShow', onTabShow);
@@ -344,11 +408,14 @@ f7.on('tabShow', onTabShow);
   }
 
   .cp-person {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     gap: var(--m-sp-3);
     padding: var(--m-sp-3) var(--m-sp-4);
     border-bottom: 1px solid var(--m-border);
+    background: var(--m-surface);
 
     &--last { border-bottom: none; }
   }
@@ -462,6 +529,49 @@ f7.on('tabShow', onTabShow);
     text-align: center;
     color: var(--m-text-3);
     font-size: 15px;
+  }
+
+  /* ── Swipe-to-reveal ── */
+  .cp-swipeable-wrapper {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cp-swipe-actions {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 160px;
+    display: flex;
+  }
+
+  .cp-swipe-action-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    i.f7-icons {
+      font-size: 20px;
+      color: #fff;
+    }
+
+    span {
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      font-family: 'Outfit', -apple-system, sans-serif;
+      letter-spacing: 0.03em;
+    }
+
+    &--call { background: #059669; }
+    &--text { background: #3B82F6; }
   }
 }
 </style>
