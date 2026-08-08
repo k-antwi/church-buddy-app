@@ -166,6 +166,7 @@
 </template>
 
 <script lang="ts" setup>
+import { f7 } from 'framework7-vue';
 import { useChurchPanelPeople } from './useChurchPanelPeople';
 
 defineOptions({ name: 'PeoplePage' });
@@ -188,7 +189,10 @@ const {
   kindLabel,
   loadAll,
   clearQuery,
+  onTabShow,
 } = useChurchPanelPeople();
+
+f7.on('tabShow', onTabShow);
 </script>
 
 <style lang="scss">

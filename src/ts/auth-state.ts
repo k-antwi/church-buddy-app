@@ -5,7 +5,8 @@ function storedRoles(): string[] {
   return getStoredUser()?.roles ?? [];
 }
 
-function storedPermissions(): string[] {
+function storedPermissions(): string[] 
+{
   return getStoredUser()?.permissions ?? [];
 }
 

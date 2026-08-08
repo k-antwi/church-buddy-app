@@ -113,8 +113,6 @@ const {
 } = useChurchPanelEvents();
 
 f7.on('tabShow', onTabShow);
-
-onMounted(loadEvents);
 </script>
 
 <style lang="scss">

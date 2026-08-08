@@ -33,25 +33,25 @@ interface RouteParams {
   resolve: (component: object, options?: object) => void;
 }
 
+interface GuardContext {
+  router: any;
+  to: unknown;
+  from: unknown;
+  resolve: () => void;
+  reject: () => void;
+  app: any;
+}
+
 // ── Guards ────────────────────────────────────────────────────────────────────
 
-/**
- * Requires the user to be authenticated.
- * Redirects to the login screen (main view `/`) on failure.
- * Uses a regular function so Framework7 sets `this` to the router instance.
- */
-function requireAuth(
-  this: any,
-  _to: unknown,
-  _from: unknown,
-  resolve: () => void,
-  reject: () => void,
-): void {
+// Framework7 v8+ calls beforeEnter guards with a single context object:
+// { router, to, from, resolve, reject, app }
+function requireAuth({ resolve, reject, router }: GuardContext): void {
   if (isAuthenticated()) {
     resolve();
   } else {
     reject();
-    this.navigate('/', { reloadCurrent: true });
+    router.navigate('/', { reloadCurrent: true });
   }
 }
 
@@ -60,16 +60,10 @@ function requireAuth(
  * Falls back to the home dashboard if the user lacks all of them.
  */
 function requireAnyPermission(permissions: string[]) {
-  return function(
-    this: any,
-    _to: unknown,
-    _from: unknown,
-    resolve: () => void,
-    reject: () => void,
-  ): void {
+  return function({ resolve, reject, router, app }: GuardContext): void {
     if (!isAuthenticated()) {
       reject();
-      this.navigate('/', { reloadCurrent: true });
+      router.navigate('/', { reloadCurrent: true });
       return;
     }
     if (hasAnyPermission(permissions)) {
@@ -78,7 +72,7 @@ function requireAnyPermission(permissions: string[]) {
       reject();
       // Navigate the main view to home — this guard fires in a tab view router,
       // so we activate the home tab rather than pushing into the current tab.
-      this.app?.tab?.show?.('#view-home');
+      app?.tab?.show?.('#view-home');
     }
   };
 }

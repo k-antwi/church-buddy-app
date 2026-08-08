@@ -136,6 +136,13 @@ export function useChurchPanelPeople() {
     query.value = '';
   }
 
+  const onTabShow = () => {
+    if (query.value) {
+      clearQuery();
+    }
+    loadAll();
+  };
+
   return {
     query,
     activeTab,
@@ -154,5 +161,6 @@ export function useChurchPanelPeople() {
     kindLabel,
     loadAll,
     clearQuery,
+    onTabShow,
   };
 }

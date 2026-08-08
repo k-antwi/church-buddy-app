@@ -199,8 +199,6 @@ defineOptions({ name: 'EvSessionsPage' });
     } = useEvSessions();
 
     f7.on('tabShow', onTabShow);
-
-    onMounted(loadSessions);
 </script>
 
 <style lang="scss">
